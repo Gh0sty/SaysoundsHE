@@ -45,6 +45,7 @@ User Commands:
 #include <sourcemod>
 #include <sdktools>
 #include <clientprefs>
+#include <tf2_stocks>
 
 // *** Sound Info Library ***
 #include <soundlib>
@@ -942,7 +943,7 @@ public Action:Load_Sounds(Handle:timer)
 //*****************************************************************
 public IsValidClient (client)
 {
-	if (client == 0 || !IsClientConnected(client) || IsFakeClient(client) || IsClientReplay(client) || IsClientSourceTV(client))
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || IsFakeClient(client) || IsClientReplay(client) || IsClientSourceTV(client))
 		return false;
 
 	return IsClientInGame(client);
@@ -1532,14 +1533,19 @@ public Action:Event_Kill(Handle:event,const String:name[],bool:dontBroadcast)
 		if (GetGameType() == tf2)
 		{
 			new custom_kill = GetEventInt(event, "customkill");
-			if (custom_kill == 1)
+			if (custom_kill == TF_CUSTOM_HEADSHOT)
 			{
 				runSoundEvent(event,"kill","headshot",attacker,victim,-1);
 				return Plugin_Continue;
 			}
-			if (custom_kill == 2)
+			if (custom_kill == TF_CUSTOM_BACKSTAB)
 			{
 				runSoundEvent(event,"kill","backstab",attacker,victim,-1);
+				return Plugin_Continue;
+			}
+			if (custom_kill == TF_CUSTOM_TELEFRAG)
+			{
+				runSoundEvent(event,"kill","telefrag",attacker,victim,-1);
 				return Plugin_Continue;
 			}
 			new bits = GetEventInt(event,"damagebits");
@@ -2008,7 +2014,7 @@ public OnClientAuthorized(client, const String:auth[])
 //####### Command Say #######
 public Action:Command_Say(client, const String:command[], argc){
 
-	if(client != 0){
+	if(IsValidClient(client)){
 
 		// If sounds are not enabled, then skip this whole thing
 		if (!GetConVarBool(cvarsoundenable))
