@@ -34,6 +34,11 @@
 		"de"    "Entschuldigung, das ist ein Action Sound!"
 		"ru"	"Извините, но это звук события!"
 	}
+	"NoAccess"
+	{
+		"en"	"Sorry, you don't have access to this sound"
+		"de"	"Du hast keinen Zugriff auf den Sound"
+	}
 	"AdminSounds"
 	{
 		"en"    "Sorry, you are not authorized to play this sound!"

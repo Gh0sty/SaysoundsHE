@@ -108,11 +108,13 @@ enum sound_types { normal_sounds, admin_sounds, karaoke_sounds, all_sounds };
 new Handle:cvarsaysoundversion		= INVALID_HANDLE;
 new Handle:cvarsoundenable			= INVALID_HANDLE;
 new Handle:cvarsoundlimit			= INVALID_HANDLE;
+new Handle:cvarsoundlimitFlags		= INVALID_HANDLE;
 new Handle:cvarsoundwarn			= INVALID_HANDLE;
 new Handle:cvarjoinexit				= INVALID_HANDLE;
 new Handle:cvarjoinspawn			= INVALID_HANDLE;
 new Handle:cvarspecificjoinexit		= INVALID_HANDLE;
 new Handle:cvartimebetween			= INVALID_HANDLE;
+new Handle:cvartimebetweenFlags		= INVALID_HANDLE;
 new Handle:cvaradmintime			= INVALID_HANDLE;
 new Handle:cvaradminwarn			= INVALID_HANDLE;
 new Handle:cvaradminlimit			= INVALID_HANDLE;
@@ -167,7 +169,6 @@ new bool:firstSpawn[MAXPLAYERS+1];
 new Float:globalLastSound = 0.0;
 new Float:globalLastAdminSound = 0.0;
 new String:LastPlayedSound[PLATFORM_MAX_PATH+1] = "";
-new String:g_SaySoundErrorLog[PLATFORM_MAX_PATH+1];
 new bool:hearalive = true;
 
 // Variables for karaoke
@@ -253,9 +254,9 @@ public Plugin:myinfo =
 
 	enum State { Unknown=0, Defined, Download, Force, Precached };
 
-	new Handle:cvarDownloadThreshold = INVALID_HANDLE;
-	new Handle:cvarSoundThreshold	= INVALID_HANDLE;
-	new Handle:cvarSoundLimit		= INVALID_HANDLE;
+	new Handle:cvarDownloadThreshold	= INVALID_HANDLE;
+	new Handle:cvarSoundThreshold		= INVALID_HANDLE;
+	new Handle:cvarSoundLimitMap		= INVALID_HANDLE;
 
 	new g_iSoundCount			= 0;
 	new g_iDownloadCount		= 0;
@@ -452,10 +453,12 @@ public OnPluginStart()
 	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off",FCVAR_PLUGIN);
 	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)",FCVAR_PLUGIN);
 	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)",FCVAR_PLUGIN);
+	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds",FCVAR_PLUGIN);
 	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game",FCVAR_PLUGIN);
 	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound",FCVAR_PLUGIN);
 	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game",FCVAR_PLUGIN);
 	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking",FCVAR_PLUGIN);
+	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check",FCVAR_PLUGIN);
 	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins",FCVAR_PLUGIN);
 	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)",FCVAR_PLUGIN);
 	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)",FCVAR_PLUGIN);
@@ -476,7 +479,7 @@ public OnPluginStart()
 #if !defined _ResourceManager_included
 	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).", FCVAR_PLUGIN);
 	cvarSoundThreshold = CreateConVar("sm_saysoundhe_sound_threshold", "0", "Number of sounds to precache on map start (-1=unlimited).", FCVAR_PLUGIN);
-	cvarSoundLimit	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).", FCVAR_PLUGIN);
+	cvarSoundLimitMap	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).", FCVAR_PLUGIN);
 #endif
 
 	//####FernFerret####//
@@ -743,8 +746,6 @@ public OnPluginEnd()
 //*****************************************************************
 public OnMapStart()
 {
-	BuildPath(Path_SM,g_SaySoundErrorLog,sizeof(g_SaySoundErrorLog),"logs/saysounds_error.log");
-
 	LastPlayedSound = "";
 	globalLastSound = 0.0;
 	globalLastAdminSound = 0.0;
@@ -760,7 +761,7 @@ public OnMapStart()
 	#if !defined _ResourceManager_included
 		g_iDownloadThreshold = GetConVarInt(cvarDownloadThreshold);
 		g_iSoundThreshold	= GetConVarInt(cvarSoundThreshold);
-		g_iSoundLimit		= GetConVarInt(cvarSoundLimit);
+		g_iSoundLimit		= GetConVarInt(cvarSoundLimitMap);
 
 		// Setup trie to keep track of precached sounds
 		if (g_soundTrie == INVALID_HANDLE)
@@ -941,6 +942,23 @@ public Action:Load_Sounds(Handle:timer)
 //						*** Checking stuff ***					  *
 //	------------------------------------------------------------- *
 //*****************************************************************
+bool:HasClientAccess (const String:flags[], client)
+{
+	new len = strlen(flags);
+	new AdminFlag:flag;
+	
+	for (new i = 0; i < len; i++)
+	{
+		if (!FindFlagByChar(flags[i], flag))
+		{
+			LogError("Ivalid flag detected: %c", flags[i]);
+		}
+		else if ((GetUserFlagBits(client) & FlagToBit(flag)))// || (GetUserFlagBits(client) & ADMFLAG_ROOT))
+			return true;
+	}
+	return false;
+}
+
 public IsValidClient (client)
 {
 	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || IsFakeClient(client) || IsClientReplay(client) || IsClientSourceTV(client))
@@ -979,7 +997,7 @@ bool:checkSamplingRate(const String:filelocation[])
 		samplerate = GetSoundSamplingRate(h_Soundfile);
 	else
 	{
-		LogToFile(g_SaySoundErrorLog,"<checkSamplingRate> INVALID_HANDLE for file \"%s\" ", filelocation);
+		LogError("<checkSamplingRate> INVALID_HANDLE for file \"%s\" ", filelocation);
 		CloseHandle(h_Soundfile);
 		return false;
 	}
@@ -987,7 +1005,7 @@ bool:checkSamplingRate(const String:filelocation[])
 
 	if (samplerate > 44100)
 	{
-		LogToFile(g_SaySoundErrorLog,"Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
+		LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
 		return false;
 	}
 	return true;
@@ -2201,6 +2219,11 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		KvGetString(listfile, "text", txtmsg, sizeof(txtmsg));
 
 	new actiononly = KvGetNum(listfile, "actiononly",0);
+	
+	decl String:accflags[26];
+	accflags[0] = '\0';
+	
+	KvGetString(listfile, "flags", accflags, sizeof(accflags));
 
 	if (joinsound || exitsound)
 		tmp_joinsound = 1;
@@ -2225,12 +2248,12 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		CloseHandle(h_Soundfile);
 	}
 	else
-		LogToFile(g_SaySoundErrorLog,"<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
+		LogError("<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
 
 	// Check the sample rate and leave a message if it's above 44.1 kHz;
 	if (samplerate > 44100)
 	{
-		LogToFile(g_SaySoundErrorLog,"Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
+		LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
 		PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
 		return;
 	}
@@ -2262,6 +2285,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	WritePackString(pack, name);
 	WritePackCell(pack, tmp_joinsound);
 	WritePackString(pack, txtmsg);
+	WritePackString(pack, accflags);
 	ResetPack(pack);
 }
 
@@ -2297,6 +2321,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	decl String:chatBuffer[256];
 	decl String:txtmsg[256];
 	txtmsg[0] = '\0';
+	decl String:accflags[26];
+	accflags[0] = '\0';
 	new client = ReadPackCell(pack);
 	new adminonly = ReadPackCell(pack);
 	new adultonly = ReadPackCell(pack);
@@ -2310,6 +2336,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	ReadPackString(pack, name , sizeof(name));
 	new joinsound = ReadPackCell(pack);
 	ReadPackString(pack, txtmsg , sizeof(txtmsg));
+	ReadPackString(pack, accflags , sizeof(accflags));
 
 	/* ####FernFerret#### */
 	// Checks for Action Only sounds and messages user telling them why they can't play an action only sound
@@ -2328,6 +2355,9 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 
 	new Float:waitTime = GetConVarFloat(cvartimebetween);
 	new Float:adminTime = GetConVarFloat(cvaradmintime);
+	decl String:waitTimeFlags[26];
+	waitTimeFlags[0] = '\0';
+	GetConVarString(cvartimebetweenFlags, waitTimeFlags, sizeof(waitTimeFlags));
 
 	new bool:isadmin = false;
 	if (IsValidClient(client))
@@ -2341,6 +2371,12 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 			PrintToChat(client,"\x04[Say Sounds] \x01%t", "AdminSounds");
 			return Plugin_Handled;
 		}
+		// Has the client access to this sound
+		if (accflags[0] != '\0' && !HasClientAccess(accflags, client))
+		{
+			PrintToChat(client,"\x04[Say Sounds] \x01%t", "NoAccess");
+			return Plugin_Handled;
+		}
 	}
 
 	new Float:thetime = GetGameTime();
@@ -2349,14 +2385,17 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	//	Only if the user is not admin or he is admin and the adminTime is not -1 for bypassing
 	if (globalLastSound > 0.0)
 	{
-		if ((!isadmin && globalLastSound > thetime) || (isadmin && adminTime >= 0.0 && globalLastSound > thetime))
+		if (waitTimeFlags[0] != '\0' && !HasClientAccess(waitTimeFlags, client))
 		{
-			if(IsValidClient(client))
+			if ((!isadmin && globalLastSound > thetime) || (isadmin && adminTime >= 0.0 && globalLastSound > thetime))
 			{
-				//PrintToChat(client,"\x04[Say Sounds]\x01 Please don't spam the sounds!");
-				PrintToChat(client,"\x04[Say Sounds] \x01%t", "SpamSounds");
+				if(IsValidClient(client))
+				{
+					//PrintToChat(client,"\x04[Say Sounds]\x01 Please don't spam the sounds!");
+					PrintToChat(client,"\x04[Say Sounds] \x01%t", "SpamSounds");
+				}
+				return Plugin_Handled;
 			}
-			return Plugin_Handled;
 		}
 	}
 
@@ -2402,6 +2441,11 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	}
 
 	new soundLimit = isadmin ? GetConVarInt(cvaradminlimit) : GetConVarInt(cvarsoundlimit);	
+	
+	decl String:soundLimitFlags[26];
+	soundLimitFlags[0] = '\0';
+	GetConVarString(cvarsoundlimitFlags, soundLimitFlags, sizeof(soundLimitFlags));
+	
 	if (soundLimit <= 0 || SndCount[client] < soundLimit)
 	{
 		if (joinsound == 1)
@@ -2413,7 +2457,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		}
 		else
 		{
-			SndCount[client]++;
+			if (soundLimitFlags[0] != '\0' && !HasClientAccess(soundLimitFlags, client))
+				SndCount[client]++;
 			//LastSound[client] = thetime + waitTime;
 			globalLastSound   = thetime + waitTime;
 		}
