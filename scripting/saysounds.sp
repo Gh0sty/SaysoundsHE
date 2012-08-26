@@ -109,6 +109,8 @@ new Handle:cvarsaysoundversion		= INVALID_HANDLE;
 new Handle:cvarsoundenable			= INVALID_HANDLE;
 new Handle:cvarsoundlimit			= INVALID_HANDLE;
 new Handle:cvarsoundlimitFlags		= INVALID_HANDLE;
+new Handle:cvarsoundFlags			= INVALID_HANDLE;
+new Handle:cvarsoundFlagsLimit		= INVALID_HANDLE;
 new Handle:cvarsoundwarn			= INVALID_HANDLE;
 new Handle:cvarjoinexit				= INVALID_HANDLE;
 new Handle:cvarjoinspawn			= INVALID_HANDLE;
@@ -451,17 +453,26 @@ public OnPluginStart()
 	// *** Creating the Cvars ***
 	cvarsaysoundversion = CreateConVar("sm_saysounds_hybrid_version", PLUGIN_VERSION, "Say Sounds Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off",FCVAR_PLUGIN);
+	// Client limit cvars
 	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)",FCVAR_PLUGIN);
 	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)",FCVAR_PLUGIN);
 	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds",FCVAR_PLUGIN);
+	cvarsoundFlags = CreateConVar("sm_saysoundhe_flags","","Flag(s) that will have a seperate sound limit",FCVAR_PLUGIN);
+	cvarsoundFlagsLimit = CreateConVar("sm_saysoundhe_flags_limit","5","Maximum sounds per person with the corresponding flag (0 for unlimited)",FCVAR_PLUGIN);
+	// Join cvars
 	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game",FCVAR_PLUGIN);
 	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound",FCVAR_PLUGIN);
 	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game",FCVAR_PLUGIN);
+	// Anti-Spam cavrs
 	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking",FCVAR_PLUGIN);
 	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check",FCVAR_PLUGIN);
+	// Admin limit cvars
 	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins",FCVAR_PLUGIN);
 	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)",FCVAR_PLUGIN);
 	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)",FCVAR_PLUGIN);
+	//
+	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map", FCVAR_PLUGIN);
+	//
 	cvarannounce = CreateConVar("sm_saysoundhe_sound_announce","1","Turns on announcements when a sound is played",FCVAR_PLUGIN);
 	cvaradult = CreateConVar("sm_saysoundhe_adult_announce","0","Announce played adult sounds? | 0 = off 1 = on",FCVAR_PLUGIN);
 	cvarsentence = CreateConVar("sm_saysoundhe_sound_sentence","0","When set, will trigger sounds if keyword is embedded in a sentence",FCVAR_PLUGIN);
@@ -469,7 +480,6 @@ public OnPluginStart()
 	cvarvolume = CreateConVar("sm_saysoundhe_saysounds_volume","1.0","Volume setting for Say Sounds (0.0 <= x <= 1.0)",FCVAR_PLUGIN,true,0.0,true,1.0); // mod by Woody
 	cvarplayifclsndoff = CreateConVar("sm_saysoundhe_play_cl_snd_off","0","When set, allows clients that have turned their sounds off to trigger sounds (0=off | 1=on)",FCVAR_PLUGIN);
 	cvarkaraokedelay = CreateConVar("sm_saysoundhe_karaoke_delay","15.0","Delay before playing a Karaoke song",FCVAR_PLUGIN);
-	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map", FCVAR_PLUGIN);
 	cvarexcludelastsound = CreateConVar("sm_saysoundhe_excl_last_sound", "0", "If set, don't allow to play a sound that was recently played", FCVAR_PLUGIN);
 	cvarblocktrigger = CreateConVar("sm_saysoundhe_block_trigger", "0", "If set, block the sound trigger to be displayed in the chat window", FCVAR_PLUGIN);
 	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start", FCVAR_PLUGIN);
@@ -582,7 +592,8 @@ public OnPluginStart()
 		// if there are no limits, there is no need to save counts
 		if (GetConVarBool(cvarTrackDisconnects) &&
 			(GetConVarInt(cvarsoundlimit) > 0 ||
-			 GetConVarInt(cvaradminlimit) > 0))
+			 GetConVarInt(cvaradminlimit) > 0 ||
+			 GetConVarInt(cvarsoundFlagsLimit) > 0))
 		{
 			g_hSoundCountTrie = CreateTrie();
 		}
@@ -942,7 +953,7 @@ public Action:Load_Sounds(Handle:timer)
 //						*** Checking stuff ***					  *
 //	------------------------------------------------------------- *
 //*****************************************************************
-bool:HasClientAccess (const String:flags[], client)
+bool:HasClientFlags (const String:flags[], client)
 {
 	new len = strlen(flags);
 	new AdminFlag:flag;
@@ -2372,7 +2383,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 			return Plugin_Handled;
 		}
 		// Has the client access to this sound
-		if (accflags[0] != '\0' && !HasClientAccess(accflags, client))
+		if (accflags[0] != '\0' && !HasClientFlags(accflags, client))
 		{
 			PrintToChat(client,"\x04[Say Sounds] \x01%t", "NoAccess");
 			return Plugin_Handled;
@@ -2385,7 +2396,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	//	Only if the user is not admin or he is admin and the adminTime is not -1 for bypassing
 	if (globalLastSound > 0.0)
 	{
-		if (waitTimeFlags[0] != '\0' && !HasClientAccess(waitTimeFlags, client))
+		if (waitTimeFlags[0] != '\0' && !HasClientFlags(waitTimeFlags, client))
 		{
 			if ((!isadmin && globalLastSound > thetime) || (isadmin && adminTime >= 0.0 && globalLastSound > thetime))
 			{
@@ -2439,8 +2450,21 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		else
 			hearalive = true;
 	}
-
-	new soundLimit = isadmin ? GetConVarInt(cvaradminlimit) : GetConVarInt(cvarsoundlimit);	
+	
+	decl String:soundFlags[26];
+	soundFlags[0] = '\0';
+	GetConVarString(cvarsoundFlags, soundFlags, sizeof(soundFlags));
+	
+	new soundLimit;
+	
+	if (isadmin)
+		soundLimit = GetConVarInt(cvaradminlimit);
+	else if (soundFlags[0] != '\0' && HasClientFlags(soundFlags, client))
+		soundLimit = GetConVarInt(cvarsoundFlagsLimit);
+	else
+		soundLimit = GetConVarInt(cvarsoundlimit);
+	
+	//new soundLimit = isadmin ? GetConVarInt(cvaradminlimit) : GetConVarInt(cvarsoundlimit);	
 	
 	decl String:soundLimitFlags[26];
 	soundLimitFlags[0] = '\0';
@@ -2457,7 +2481,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		}
 		else
 		{
-			if (soundLimitFlags[0] != '\0' && !HasClientAccess(soundLimitFlags, client))
+			if (soundLimitFlags[0] != '\0' && !HasClientFlags(soundLimitFlags, client))
 				SndCount[client]++;
 			//LastSound[client] = thetime + waitTime;
 			globalLastSound   = thetime + waitTime;
