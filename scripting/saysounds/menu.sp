@@ -197,7 +197,12 @@ public SaysoundClientPref(client, CookieMenuAction:action, any:info, String:buff
 {
 	if (action == CookieMenuAction_SelectOption)
 	{
-		ShowClientPrefMenu(client);
+		decl String:confMenuFlags[26];
+		confMenuFlags[0] = '\0';
+		GetConVarString(cvarMenuSettingsFlags, confMenuFlags, sizeof(confMenuFlags));
+		
+		if (confMenuFlags[0] == '\0' || HasClientFlags(confMenuFlags, client))
+			ShowClientPrefMenu(client);
 	}
 }
 

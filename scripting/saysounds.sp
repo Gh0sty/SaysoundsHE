@@ -136,6 +136,7 @@ new Handle:cvarinterruptsound		= INVALID_HANDLE;
 new Handle:cvarfilterifdead			= INVALID_HANDLE;
 new Handle:cvarTrackDisconnects  	= INVALID_HANDLE;
 new Handle:cvarStopFlags		  	= INVALID_HANDLE;
+new Handle:cvarMenuSettingsFlags	= INVALID_HANDLE;
 new Handle:g_hMapvoteDuration 		= INVALID_HANDLE;
 //####FernFerret####/
 new Handle:cvarshowsoundmenu		= INVALID_HANDLE;
@@ -266,6 +267,7 @@ public OnPluginStart()
 	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players", FCVAR_PLUGIN);
 	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.", FCVAR_PLUGIN);
 	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound",FCVAR_PLUGIN);
+	cvarMenuSettingsFlags = CreateConVar("sm_saysoundhe_confmenu_flags","","User flags that are allowed to access the configuration menu",FCVAR_PLUGIN);
 
 #if !defined _ResourceManager_included
 	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).", FCVAR_PLUGIN);
@@ -922,7 +924,7 @@ public Action:Event_Kill(Handle:event,const String:name[],bool:dontBroadcast)
 
 			GetEventString(event, "weapon_logclassname",wepstring,PLATFORM_MAX_PATH+1);
 		}
-		else if (GetGameType() == cstrike)
+		else if (GetGameType() == cstrike || GetGameType() == csgo)
 		{
 			new headshot = 0;
 			headshot = GetEventBool(event, "headshot");
@@ -1377,8 +1379,11 @@ public Action:Command_Say(client, const String:command[], argc){
 		decl String:speech[192];
 		decl String:stopFlags[26];
 		stopFlags[0] = '\0';
+		decl String:confMenuFlags[26];
+		confMenuFlags[0] = '\0';
 		
 		GetConVarString(cvarStopFlags, stopFlags, sizeof(stopFlags));
+		GetConVarString(cvarMenuSettingsFlags, confMenuFlags, sizeof(confMenuFlags));
 
 		
 		if (GetCmdArgString(speech, sizeof(speech)) < 1)
@@ -1407,8 +1412,8 @@ public Action:Command_Say(client, const String:command[], argc){
 
 		if(strcmp(speech[startidx],"!sounds",false) == 0 || strcmp(speech[startidx],"sounds",false) == 0){
 
-
-			ShowClientPrefMenu(client);
+			if (confMenuFlags[0] == '\0' || HasClientFlags(confMenuFlags, client))
+				ShowClientPrefMenu(client);
 
 			return Plugin_Handled;
 
