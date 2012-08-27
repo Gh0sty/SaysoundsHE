@@ -45,7 +45,9 @@ User Commands:
 #include <sourcemod>
 #include <sdktools>
 #include <clientprefs>
+#undef REQUIRE_EXTENSIONS
 #include <tf2_stocks>
+#define REQUIRE_EXTENSIONS
 
 // *** Sound Info Library ***
 #include <soundlib>
@@ -133,6 +135,7 @@ new Handle:cvarblocktrigger			= INVALID_HANDLE;
 new Handle:cvarinterruptsound		= INVALID_HANDLE;
 new Handle:cvarfilterifdead			= INVALID_HANDLE;
 new Handle:cvarTrackDisconnects  	= INVALID_HANDLE;
+new Handle:cvarStopFlags		  	= INVALID_HANDLE;
 new Handle:g_hMapvoteDuration 		= INVALID_HANDLE;
 //####FernFerret####/
 new Handle:cvarshowsoundmenu		= INVALID_HANDLE;
@@ -203,238 +206,15 @@ public Plugin:myinfo =
 	url = "http://forums.alliedmods.net/showthread.php?t=82220"
 };
 
-
 //*****************************************************************
 //	------------------------------------------------------------- *
-//					*** Get the game/mod type ***				  *
+//				*** Inculding seperate files ***				  *
 //	------------------------------------------------------------- *
 //*****************************************************************
-#tryinclude <gametype>
-#if !defined _gametype_included
-	enum Game { undetected, tf2, cstrike, dod, hl2mp, insurgency, zps, l4d, l4d2, other_game };
-	stock Game:GameType = undetected;
-
-	stock Game:GetGameType()
-	{
-		if (GameType == undetected)
-		{
-			new String:modname[30];
-			GetGameFolderName(modname, sizeof(modname));
-			if (StrEqual(modname,"cstrike",false))
-				GameType=cstrike;
-			else if (StrEqual(modname,"tf",false)) 
-				GameType=tf2;
-			else if (StrEqual(modname,"dod",false)) 
-				GameType=dod;
-			else if (StrEqual(modname,"hl2mp",false)) 
-				GameType=hl2mp;
-			else if (StrEqual(modname,"Insurgency",false)) 
-				GameType=insurgency;
-			else if (StrEqual(modname,"left4dead", false)) 
-				GameType=l4d;
-			else if (StrEqual(modname,"left4dead2", false)) 
-				GameType=l4d2;
-			else if (StrEqual(modname,"zps",false)) 
-				GameType=zps;
-			else
-				GameType=other_game;
-		}
-		return GameType;
-	}
-#endif
-
-//*****************************************************************
-//	------------------------------------------------------------- *
-//				*** Manage precaching resources ***				  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-#tryinclude "ResourceManager"
-#if !defined _ResourceManager_included
-	#define DONT_DOWNLOAD	0
-	#define DOWNLOAD		1
-	#define ALWAYS_DOWNLOAD 2
-
-	enum State { Unknown=0, Defined, Download, Force, Precached };
-
-	new Handle:cvarDownloadThreshold	= INVALID_HANDLE;
-	new Handle:cvarSoundThreshold		= INVALID_HANDLE;
-	new Handle:cvarSoundLimitMap		= INVALID_HANDLE;
-
-	new g_iSoundCount			= 0;
-	new g_iDownloadCount		= 0;
-	new g_iRequiredCount		= 0;
-	new g_iPrevDownloadIndex	= 0;
-	new g_iDownloadThreshold	= -1;
-	new g_iSoundThreshold		= -1;
-	new g_iSoundLimit			= -1;
-
-	// Trie to hold precache status of sounds
-	new Handle:g_soundTrie = INVALID_HANDLE;
-
-	stock bool:PrepareSound(const String:sound[], bool:force=false, bool:preload=false)
-	{
-		new State:value = Unknown;
-		if (!GetTrieValue(g_soundTrie, sound, value) || value < Precached)
-		{
-			if (force || value >= Force || g_iSoundLimit <= 0 ||
-				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
-			{
-				PrecacheSound(sound, preload);
-				SetTrieValue(g_soundTrie, sound, Precached);
-			}
-			else
-				return false;
-		}
-		return true;
-	}
-
-	stock SetupSound(const String:sound[], bool:force=false, download=DOWNLOAD,
-					 bool:precache=false, bool:preload=false)
-	{
-		new State:value = Unknown;
-		new bool:update = !GetTrieValue(g_soundTrie, sound, value);
-		if (update || value < Defined)
-		{
-			g_iSoundCount++;
-			value  = Defined;
-			update = true;
-		}
-
-		if (value < Download && download && g_iDownloadThreshold != 0)
-		{
-			decl String:file[PLATFORM_MAX_PATH+1];
-			Format(file, sizeof(file), "sound/%s", sound);
-
-			if (FileExists(file))
-			{
-				if (download < 0)
-				{
-					if (!strncmp(file, "ambient", 7) ||
-						!strncmp(file, "beams", 5) ||
-						!strncmp(file, "buttons", 7) ||
-						!strncmp(file, "coach", 5) ||
-						!strncmp(file, "combined", 8) ||
-						!strncmp(file, "commentary", 10) ||
-						!strncmp(file, "common", 6) ||
-						!strncmp(file, "doors", 5) ||
-						!strncmp(file, "friends", 7) ||
-						!strncmp(file, "hl1", 3) ||
-						!strncmp(file, "items", 5) ||
-						!strncmp(file, "midi", 4) ||
-						!strncmp(file, "misc", 4) ||
-						!strncmp(file, "music", 5) ||
-						!strncmp(file, "npc", 3) ||
-						!strncmp(file, "physics", 7) ||
-						!strncmp(file, "pl_hoodoo", 9) ||
-						!strncmp(file, "plats", 5) ||
-						!strncmp(file, "player", 6) ||
-						!strncmp(file, "resource", 8) ||
-						!strncmp(file, "replay", 6) ||
-						!strncmp(file, "test", 4) ||
-						!strncmp(file, "ui", 2) ||
-						!strncmp(file, "vehicles", 8) ||
-						!strncmp(file, "vo", 2) ||
-						!strncmp(file, "weapons", 7))
-					{
-						// If the sound starts with one of those directories
-						// assume it came with the game and doesn't need to
-						// be downloaded.
-						download = 0;
-					}
-					else
-						download = 1;
-				}
-
-				if (download > 0 &&
-					(download > 1 || g_iDownloadThreshold < 0 ||
-					 (g_iSoundCount > g_iPrevDownloadIndex &&
-					  g_iDownloadCount < g_iDownloadThreshold + g_iRequiredCount)))
-				{
-					AddFileToDownloadsTable(file);
-
-					update = true;
-					value  = Download;
-					g_iDownloadCount++;
-
-					if (download > 1)
-						g_iRequiredCount++;
-
-					if (download <= 1 || g_iSoundCount == g_iPrevDownloadIndex + 1)
-						g_iPrevDownloadIndex = g_iSoundCount;
-				}
-			}
-		}
-
-		if (value < Precached && (precache || (g_iSoundThreshold > 0 &&
-											   g_iSoundCount < g_iSoundThreshold)))
-		{
-			if (force || g_iSoundLimit <= 0 &&
-				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
-			{
-				PrecacheSound(sound, preload);
-
-				if (value < Precached)
-				{
-					value  = Precached;
-					update = true;
-				}
-			}
-		}
-		else if (force && value < Force)
-		{
-			value  = Force;
-			update = true;
-		}
-
-		if (update)
-			SetTrieValue(g_soundTrie, sound, value);
-	}
-
-	stock PrepareAndEmitSound(const clients[],
-					 numClients,
-					 const String:sample[],
-					 entity = SOUND_FROM_PLAYER,
-					 channel = SNDCHAN_AUTO,
-					 level = SNDLEVEL_NORMAL,
-					 flags = SND_NOFLAGS,
-					 Float:volume = SNDVOL_NORMAL,
-					 pitch = SNDPITCH_NORMAL,
-					 speakerentity = -1,
-					 const Float:origin[3] = NULL_VECTOR,
-					 const Float:dir[3] = NULL_VECTOR,
-					 bool:updatePos = true,
-					 Float:soundtime = 0.0)
-	{
-		if (PrepareSound(sample))
-		{
-			EmitSound(clients, numClients, sample, entity, channel,
-					  level, flags, volume, pitch, speakerentity,
-					  origin, dir, updatePos, soundtime);
-		}
-	}
-
-	stock PrepareAndEmitSoundToClient(client,
-					 const String:sample[],
-					 entity = SOUND_FROM_PLAYER,
-					 channel = SNDCHAN_AUTO,
-					 level = SNDLEVEL_NORMAL,
-					 flags = SND_NOFLAGS,
-					 Float:volume = SNDVOL_NORMAL,
-					 pitch = SNDPITCH_NORMAL,
-					 speakerentity = -1,
-					 const Float:origin[3] = NULL_VECTOR,
-					 const Float:dir[3] = NULL_VECTOR,
-					 bool:updatePos = true,
-					 Float:soundtime = 0.0)
-	{
-		if (PrepareSound(sample))
-		{
-			EmitSoundToClient(client, sample, entity, channel,
-							  level, flags, volume, pitch, speakerentity,
-							  origin, dir, updatePos, soundtime);
-		}
-	}
-#endif
+#include "saysounds/gametype.sp"
+#include "saysounds/resourcemanager.sp"
+#include "saysounds/checks.sp"
+#include "saysounds/menu.sp"
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -485,6 +265,7 @@ public OnPluginStart()
 	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start", FCVAR_PLUGIN);
 	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players", FCVAR_PLUGIN);
 	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.", FCVAR_PLUGIN);
+	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound",FCVAR_PLUGIN);
 
 #if !defined _ResourceManager_included
 	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).", FCVAR_PLUGIN);
@@ -583,6 +364,11 @@ public OnPluginStart()
 			LogMessage("[Say Sounds] Detected Half-Life 2 Deathmatch");
 			HookEvent("teamplay_round_start",Event_RoundStart);
 		}
+		else if (GetGameType() == csgo)
+		{
+			LogMessage("[Say Sounds] Detected Counter-Strike: Global Offensive");
+			HookEvent("round_start", Event_RoundStart);
+		}
 		else if (GetGameType() == other_game)
 		{
 			LogMessage("[Say Sounds] No specific game detected");
@@ -671,6 +457,11 @@ public EnableChanged(Handle:convar, const String:oldValue[], const String:newVal
 			LogMessage("[Say Sounds] Detected Half-Life 2 Deathmatch");
 			HookEvent("teamplay_round_start",Event_RoundStart);
 		}
+		else if (GetGameType() == csgo)
+		{
+			LogMessage("[Say Sounds] Detected Counter-Strike: Global Offensive");
+			HookEvent("round_start", Event_RoundStart);
+		}
 		else if (GetGameType() == other_game)
 		{
 			LogMessage("[Say Sounds] No specific game detected");
@@ -722,6 +513,10 @@ public EnableChanged(Handle:convar, const String:oldValue[], const String:newVal
 		else if (GetGameType() == hl2mp)
 		{
 			UnhookEvent("teamplay_round_start",Event_RoundStart);
+		}
+		else if (GetGameType() == csgo)
+		{
+			UnhookEvent("round_start", Event_RoundStart);
 		}
 		else if (GetGameType() == other_game)
 		{
@@ -950,184 +745,6 @@ public Action:Load_Sounds(Handle:timer)
 
 //*****************************************************************
 //	------------------------------------------------------------- *
-//						*** Checking stuff ***					  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-bool:HasClientFlags (const String:flags[], client)
-{
-	new len = strlen(flags);
-	new AdminFlag:flag;
-	
-	for (new i = 0; i < len; i++)
-	{
-		if (!FindFlagByChar(flags[i], flag))
-		{
-			LogError("Ivalid flag detected: %c", flags[i]);
-		}
-		else if ((GetUserFlagBits(client) & FlagToBit(flag)))// || (GetUserFlagBits(client) & ADMFLAG_ROOT))
-			return true;
-	}
-	return false;
-}
-
-public IsValidClient (client)
-{
-	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || IsFakeClient(client) || IsClientReplay(client) || IsClientSourceTV(client))
-		return false;
-
-	return IsClientInGame(client);
-}
-
-public IsDeadClient (client)
-{
-	if (IsValidClient(client) && !IsPlayerAlive(client))
-		return true;
-
-	return false;
-}
-
-public HearSound (client)
-{	
-	if (IsPlayerAlive(client) && !hearalive)
-		return false;
-	else
-		return true;
-}
-
-public OnLibraryRemoved(const String:name[])
-{
-	if (StrEqual(name, "adminmenu"))
-		hAdminMenu = INVALID_HANDLE;
-}
-
-bool:checkSamplingRate(const String:filelocation[])
-{
-	new Handle:h_Soundfile = OpenSoundFile(filelocation,true);
-	new samplerate;
-	if (h_Soundfile != INVALID_HANDLE)
-		samplerate = GetSoundSamplingRate(h_Soundfile);
-	else
-	{
-		LogError("<checkSamplingRate> INVALID_HANDLE for file \"%s\" ", filelocation);
-		CloseHandle(h_Soundfile);
-		return false;
-	}
-	CloseHandle(h_Soundfile);
-
-	if (samplerate > 44100)
-	{
-		LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
-		return false;
-	}
-	return true;
-}
-//*****************************************************************
-//	------------------------------------------------------------- *
-//				*** Checking Client Preferences ***				  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-bool:checkClientCookies(iClient, iCase)
-{
-	new String:cookie[4];
-
-	switch (iCase)
-	{
-		case CHK_CHATMSG:	/* Chat message */
-		{
-			GetClientCookie(iClient, g_sschatmsg_cookie, cookie, sizeof(cookie));
-			if (StrEqual(cookie, "1"))
-				return true;
-			else if(StrEqual(cookie, "0"))
-				return false;
-			else
-			{
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_sschatmsg_cookie, "1");
-				return true;
-			}
-		}
-		case CHK_SAYSOUNDS:	/* Say sounds */
-		{
-			GetClientCookie(iClient, g_sssaysound_cookie, cookie, sizeof(cookie));
-			// Switching form on/off, yes/no to 1/0 but for the old cookies we'll have to check both
-			if (StrEqual(cookie, "on") || StrEqual(cookie, "1"))
-				return true;
-			else if(StrEqual(cookie, "off") || StrEqual(cookie, "0"))
-				return false;
-			else
-			{
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_sssaysound_cookie, "1");
-				return true;
-			}
-		}
-		case CHK_EVENTS:	/* Event Sounds */
-		{
-			GetClientCookie(iClient, g_ssevents_cookie, cookie, sizeof(cookie));
-			if (StrEqual(cookie, "1"))
-				return true;
-			else if(StrEqual(cookie, "0"))
-				return false;
-			else
-			{
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_ssevents_cookie, "1");
-				return true;
-			}
-		}
-		case CHK_KARAOKE:	/* Karaoke */
-		{
-			GetClientCookie(iClient, g_sskaraoke_cookie, cookie, sizeof(cookie));
-			if (StrEqual(cookie, "1"))
-				return true;
-			else if(StrEqual(cookie, "0"))
-				return false;
-			else
-			{
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_sskaraoke_cookie, "1");
-				return true;
-			}
-		}
-		case CHK_BANNED:	/* Banned */
-		{
-			GetClientCookie(iClient, g_ssban_cookie, cookie, sizeof(cookie));
-			// Switching form on/off, yes/no to 1/0 but for the old cookies we'll have to check both
-			if (StrEqual(cookie, "on") || StrEqual(cookie, "1"))
-				return true;
-			else if(StrEqual(cookie, "off") || StrEqual(cookie, "0"))
-				return false;
-			else
-			{
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_ssban_cookie, "0");
-				return false;
-			}
-		}
-		case CHK_GREETED:	/* Greeted */
-		{
-			GetClientCookie(iClient, g_ssgreeted_cookie, cookie, sizeof(cookie));
-			// Switching form on/off, yes/no to 1/0 but for the old cookies we'll have to check both
-			if (StrEqual(cookie, "yes") || StrEqual(cookie, "1")) {
-				return true;
-			} else if(StrEqual(cookie, "no") || StrEqual(cookie, "0")) {
-				return false;
-			} else {
-				// Set cookie if client connects the first time
-				SetClientCookie(iClient, g_ssgreeted_cookie, "0");
-				return false;
-			}
-		}
-		default:
-		{
-			return true;
-		}
-	}
-	return true;
-}
-
-//*****************************************************************
-//	------------------------------------------------------------- *
 //						*** UNSORTED ***						  *
 //	------------------------------------------------------------- *
 //*****************************************************************
@@ -1144,302 +761,6 @@ ResetClientSoundCount()
 public Action:reset_PlayedEvent2Client(Handle:timer, any:client)
 {
 	g_bPlayedEvent2Client[client] = false;
-}
-
-//*****************************************************************
-//	------------------------------------------------------------- *
-//						*** Menu Handling ***					  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-public OnAdminMenuReady(Handle:topmenu)
-{
-	/*************************************************************/
-	/* Add a Play Admin Sound option to the SourceMod Admin Menu */
-	/*************************************************************/
-
-	/* Block us from being called twice */
-	if (topmenu != hAdminMenu)
-	{
-		/* Save the Handle */
-		hAdminMenu = topmenu;
-		new TopMenuObject:server_commands = FindTopMenuCategory(hAdminMenu, ADMINMENU_SERVERCOMMANDS);
-		AddToTopMenu(hAdminMenu, "sm_admin_sounds", TopMenuObject_Item, Play_Admin_Sound,
-					 server_commands, "sm_admin_sounds", ADMFLAG_GENERIC);
-		AddToTopMenu(hAdminMenu, "sm_karaoke", TopMenuObject_Item, Play_Karaoke_Sound, server_commands, "sm_karaoke", ADMFLAG_CHANGEMAP);
-
-		/* ####FernFerret#### */
-		// Added two new items to the admin menu, the soundmenu hide (toggle) and the all sounds menu
-		AddToTopMenu(hAdminMenu, "sm_all_sounds", TopMenuObject_Item, Play_All_Sound, server_commands, "sm_all_sounds", ADMFLAG_GENERIC);
-		AddToTopMenu(hAdminMenu, "sm_sound_showmenu", TopMenuObject_Item, Set_Sound_Menu, server_commands, "sm_sound_showmenu", ADMFLAG_CHANGEMAP);
-		/* ################## */
-	}
-}
-
-public Play_Admin_Sound(Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id,
-						param, String:buffer[], maxlength)
-{
-	if (action == TopMenuAction_DisplayOption)
-		Format(buffer, maxlength, "Play Admin Sound");
-	else if (action == TopMenuAction_SelectOption)
-		Sound_Menu(param,admin_sounds);
-}
-
-public Play_Karaoke_Sound(Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id,
-						  param, String:buffer[], maxlength)
-{
-	if (action == TopMenuAction_DisplayOption)
-		Format(buffer, maxlength, "Karaoke");
-	else if (action == TopMenuAction_SelectOption)
-		Sound_Menu(param,karaoke_sounds);
-}
-
-/* ####FernFerret#### */
-// Start FernFerret's Action Sounds Code
-// This function sets parameters for showing the All Sounds item in the menu
-public Play_All_Sound(Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id, param, String:buffer[], maxlength)
-{
-	if (action == TopMenuAction_DisplayOption)
-		Format(buffer, maxlength, "Play a Sound");
-	else if (action == TopMenuAction_SelectOption)
-		Sound_Menu(param,all_sounds);
-}
-
-// Creates the SoundMenu show/hide item in the admin menu, it is a toggle
-public Set_Sound_Menu(Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id, param, String:buffer[], maxlength)
-{
-	if(GetConVarInt(cvarshowsoundmenu) == 1)
-	{
-		if (action == TopMenuAction_DisplayOption)
-			Format(buffer, maxlength, "Hide Sound Menu");
-		else if (action == TopMenuAction_SelectOption)
-			SetConVarInt(cvarshowsoundmenu, 0);
-	}
-	else
-	{
-		if (action == TopMenuAction_DisplayOption)
-			Format(buffer, maxlength, "Show Sound Menu");
-		else if (action == TopMenuAction_SelectOption)
-			SetConVarInt(cvarshowsoundmenu, 1);
-	}
-}
-
-public Sound_Menu(client, sound_types:types)
-{
-	if (types >= admin_sounds)
-	{
-		new AdminId:aid = GetUserAdmin(client);
-		new bool:isadmin = (aid != INVALID_ADMIN_ID) && GetAdminFlag(aid, Admin_Generic, Access_Effective);
-		if (!isadmin)
-		{
-			//PrintToChat(client,"[Say Sounds] You must be an admin view this menu!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "AdminMenu");
-			return;
-		}
-	}
-
-	new Handle:soundmenu=CreateMenu(Menu_Select);
-	SetMenuExitButton(soundmenu,true);
-	SetMenuTitle(soundmenu,"Choose a sound to play.");
-
-	decl String:title[PLATFORM_MAX_PATH+1];
-	decl String:buffer[PLATFORM_MAX_PATH+1];
-	decl String:karaokefile[PLATFORM_MAX_PATH+1];
-
-	KvRewind(listfile);
-	if (KvGotoFirstSubKey(listfile))
-	{
-		do
-		{
-			KvGetSectionName(listfile, buffer, sizeof(buffer));
-			if (!StrEqual(buffer, "JoinSound") &&
-				!StrEqual(buffer, "ExitSound") &&
-				strncmp(buffer,"STEAM_",6,false))
-			{
-				if (!KvGetNum(listfile, "actiononly", 0) &&
-					KvGetNum(listfile, "enable", 1))
-				{
-					new bool:admin = bool:KvGetNum(listfile, "admin",0);
-					new bool:adult = bool:KvGetNum(listfile, "adult",0);
-					if (!admin || types >= admin_sounds)
-					{
-						title[0] = '\0';
-						KvGetString(listfile, "title", title, sizeof(title));
-						if (!title[0])
-							strcopy(title, sizeof(title), buffer);
-
-						karaokefile[0] = '\0';
-						KvGetString(listfile, "karaoke", karaokefile, sizeof(karaokefile));
-						new bool:karaoke = (karaokefile[0] != '\0');
-						if (!karaoke || types >= karaoke_sounds)
-						{
-							switch (types)
-							{
-								case karaoke_sounds:
-								{
-									if (!karaoke)
-										continue;
-								}
-								case admin_sounds:
-								{
-									if (!admin)
-										continue;
-								}
-								case all_sounds:
-								{
-									if (karaoke)
-										StrCat(title, sizeof(title), " [Karaoke]");
-
-									if (admin)
-										StrCat(title, sizeof(title), " [Admin]");
-								}
-							}
-							if(!adult)
-							{
-								AddMenuItem(soundmenu,buffer,title);
-							}
-						}
-					}
-				}
-			}
-		} while (KvGotoNextKey(listfile));
-	}
-	else
-	{
-		SetFailState("No subkeys found in the config file!");
-	}
-
-	DisplayMenu(soundmenu,client,MENU_TIME_FOREVER);
-}
-
-public Menu_Select(Handle:menu,MenuAction:action,client,selection)
-{
-	if(action==MenuAction_Select)
-	{
-		decl String:SelectionInfo[PLATFORM_MAX_PATH+1];
-		if (GetMenuItem(menu,selection,SelectionInfo,sizeof(SelectionInfo)))
-		{
-			KvRewind(listfile);
-			KvGotoFirstSubKey(listfile);
-			decl String:buffer[PLATFORM_MAX_PATH];
-			do
-			{
-				KvGetSectionName(listfile, buffer, sizeof(buffer));
-				if (strcmp(SelectionInfo,buffer,false) == 0)
-				{
-					Submit_Sound(client,buffer);
-					break;
-				}
-			} while (KvGotoNextKey(listfile));
-		}
-	}
-	else if (action == MenuAction_End)
-		CloseHandle(menu);
-}
-
-//*****************************************************************
-//	------------------------------------------------------------- *
-//				*** Client Preferences Menu ***					  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-public SaysoundClientPref(client, CookieMenuAction:action, any:info, String:buffer[], maxlen)
-{
-	if (action == CookieMenuAction_SelectOption)
-	{
-		ShowClientPrefMenu(client);
-	}
-}
-
-public MenuHandlerClientPref(Handle:menu, MenuAction:action, param1, param2)
-{
-	if(action == MenuAction_Select)	
-	{
-		if (param2 == 0)
-		{
-			// Saysounds
-			if(!checkClientCookies(param1, CHK_SAYSOUNDS))
-				SetClientCookie(param1, g_sssaysound_cookie, "1");
-			else
-				SetClientCookie(param1, g_sssaysound_cookie, "0");
-		}
-		else if (param2 == 1)
-		{
-			// Action Sounds
-			if(!checkClientCookies(param1, CHK_EVENTS))
-			{
-				SetClientCookie(param1, g_ssevents_cookie, "1");
-			}
-			else
-			{
-				SetClientCookie(param1, g_ssevents_cookie, "0");
-			}	
-		}
-		else if (param2 == 2)
-		{
-			// Karaoke
-			if(!checkClientCookies(param1, CHK_KARAOKE))
-				SetClientCookie(param1, g_sskaraoke_cookie, "1");
-			else
-				SetClientCookie(param1, g_sskaraoke_cookie, "0");
-		}
-		else if (param2 == 3)
-		{
-			// Chat Message
-			if(!checkClientCookies(param1, CHK_CHATMSG))
-				SetClientCookie(param1, g_sschatmsg_cookie, "1");
-			else
-				SetClientCookie(param1, g_sschatmsg_cookie, "0");
-		}
-		ShowClientPrefMenu(param1);
-	} 
-	else if(action == MenuAction_End)
-	{
-		CloseHandle(menu);
-	}
-}
-
-ShowClientPrefMenu(client)
-{
-	new Handle:menu = CreateMenu(MenuHandlerClientPref);
-	decl String:buffer[100];
-
-	Format(buffer, sizeof(buffer), "%T", "SaysoundsMenu", client);
-	SetMenuTitle(menu, buffer);
-
-	// Saysounds
-	if(!checkClientCookies(client, CHK_SAYSOUNDS))
-		Format(buffer, sizeof(buffer), "%T", "EnableSaysound", client);
-	else
-		Format(buffer, sizeof(buffer), "%T", "DisableSaysound", client);
-
-	AddMenuItem(menu, "SaysoundPref", buffer);
-
-	// Action Sounds
-	if(!checkClientCookies(client, CHK_EVENTS))
-		Format(buffer, sizeof(buffer), "%T", "EnableEvents", client);
-	else
-		Format(buffer, sizeof(buffer), "%T", "DisableEvents", client);
-
-	AddMenuItem(menu, "EventPref", buffer);
-
-	// Karaoke
-	if(!checkClientCookies(client, CHK_KARAOKE))
-		Format(buffer, sizeof(buffer), "%T", "EnableKaraoke", client);
-	else
-		Format(buffer, sizeof(buffer), "%T", "DisableKaraoke", client);
-
-	AddMenuItem(menu, "KaraokePref", buffer);
-
-	// Chat Messages
-	if(!checkClientCookies(client, CHK_CHATMSG))
-		Format(buffer, sizeof(buffer), "%T", "EnableChat", client);
-	else
-		Format(buffer, sizeof(buffer), "%T", "DisableChat", client);
-
-	AddMenuItem(menu, "ChatPref", buffer);
-
-	SetMenuExitButton(menu, true);
-
-	DisplayMenu(menu, client, 0);
 }
 
 //*****************************************************************
@@ -2054,6 +1375,10 @@ public Action:Command_Say(client, const String:command[], argc){
 			return Plugin_Continue;
 			
 		decl String:speech[192];
+		decl String:stopFlags[26];
+		stopFlags[0] = '\0';
+		
+		GetConVarString(cvarStopFlags, stopFlags, sizeof(stopFlags));
 
 		
 		if (GetCmdArgString(speech, sizeof(speech)) < 1)
@@ -2130,7 +1455,7 @@ public Action:Command_Say(client, const String:command[], argc){
 
 		} else if(strcmp(speech[startidx],"!stop",false) == 0){
 
-			if(SndPlaying[client][0])
+			if(SndPlaying[client][0] && (stopFlags[0] == '\0' || HasClientFlags(stopFlags, client)))
 			{
 				StopSound(client,SNDCHAN_AUTO,SndPlaying[client]);
 				SndPlaying[client] = "";
@@ -2396,7 +1721,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	//	Only if the user is not admin or he is admin and the adminTime is not -1 for bypassing
 	if (globalLastSound > 0.0)
 	{
-		if (waitTimeFlags[0] != '\0' && !HasClientFlags(waitTimeFlags, client))
+		if (waitTimeFlags[0] == '\0' || !HasClientFlags(waitTimeFlags, client))
 		{
 			if ((!isadmin && globalLastSound > thetime) || (isadmin && adminTime >= 0.0 && globalLastSound > thetime))
 			{
@@ -2481,7 +1806,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		}
 		else
 		{
-			if (soundLimitFlags[0] != '\0' && !HasClientFlags(soundLimitFlags, client))
+			if (soundLimitFlags[0] == '\0' || !HasClientFlags(soundLimitFlags, client))
 				SndCount[client]++;
 			//LastSound[client] = thetime + waitTime;
 			globalLastSound   = thetime + waitTime;
