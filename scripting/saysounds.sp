@@ -1900,7 +1900,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 			new soundWarn = isadmin ? GetConVarInt(cvaradminwarn) : GetConVarInt(cvarsoundwarn);	
 			if (soundWarn <= 0 || SndCount[client] >= soundWarn)
 			{
-				if (joinsound != 1)
+				if (joinsound != 1 && (soundLimitFlags[0] == '\0' || !HasClientFlags(soundLimitFlags, client)))
 				{
 					new numberleft = (soundLimit -  SndCount[client]);
 					if (numberleft == 1)
