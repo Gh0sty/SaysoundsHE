@@ -1,0 +1,330 @@
+Say Sounds Hybrid Edition
+https://forums.alliedmods.net/showthread.php?t=82220
+
+This plugin is a continuation of the Say Sounds plugin by Hell Phoenix
+
+Credits to all contributors
+	
+Versions:
+	1.0
+		* First Public Release!
+	1.1
+		* Removed "downloadtable extension" dependency
+		* Added Insurgency Mod Support
+	1.2
+		* Fixed some errors
+		* Added admin only triggers
+		* Join/Exit sound added
+	1.3
+		* Made join/exit sounds for admins only
+		* Fixed errors on linux
+	1.4
+		* Fixed sound reset bug (thanks to lambdacore for pointing it out)
+		* Added join/exit and wazza sound files to the download
+	1.5 September 26, 2007
+		* Uses EmitSountToClient instead of play (should allow multiple sounds to play at once)
+			- Note that the path for the file changed because of this...remove the sound/ from your 
+				cfg file...IE. change sound/misc/wazza.wav to misc/wazza.wav
+		* Clients using "!soundlist" in chat will get a list of triggers in their console
+		* Added a cvar to control how long between each sound to wait and a message to the user
+	1.5.5 Oct 9, 2007
+		* Fixed small memory leak from not closing handle at the end of each map
+	1.6   Dec 28, 2007
+		* Modified by -=|JFH|=-Naris
+		* Added soundmenu (Menu of sounds to play)
+		* Added adminsounds (Menu of admin-only sounds for admins to play)
+		* Added adminsounds menu to SourceMod's admin menu
+		* Added sm_specific_join_exit (Join/Exit for specific STEAM IDs)
+		* Fixed join/exit sounds not playing by adding call to KvRewind()
+		  before KvJumpToKey().
+		* Fixed non-admins playing admin sounds by checking for generic admin bits.
+		* Used SourceMod's MANPLAYERS instead of recreating another MAX_PLAYERS constant.
+		* Added globalLastSound which is set to duration of last sound played
+		  to reduce possibility of overlapping sounds.
+		* Fix the sounds go away bug
+		* Moved close of listfile from mapchange to Load_Sounds (if handle is valid)
+	1.7   Jan 10, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added separate admin sound_limit and time_between_sounds convars.
+		* Changed multiple sound to check the "file" key if "file1" is not found.
+	1.8   Jan 11, 2008
+		* Modified by -=|JFH|=-Naris
+		* Fixed timer errors
+	1.9   Jan 18, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added Sound Duration setting in config file
+		* Various fixes
+	1.10  Jan 22, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added more comprehensive error checking
+		* Changed !soundlist to call Sound_Menu() instead of List_Sounds().
+	1.11  Feb 03, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added separate sm_sound_admin_warn convar.
+		* Added unlimited sounds when limit == 0.
+	1.12  Feb 03, 2008
+		* Modified by -=|JFH|=-Naris
+		* Fixed message that limit was passed when unlimited
+		* Fixed grammar in warning.
+	1.13  Feb 06, 2008
+		* Modified by -=|JFH|=-Naris
+		* Fix bug in unlimited sounds.
+		* Added logging.
+	1.14  Feb 13, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added logging of unnamed (join/exit) sounds.
+	1.15  Feb 14, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added LAMDACORE's change to increase memory to allow lots of sounds
+		* Added LAMDACORE's change to allow keyword to be embedded in a sentence.
+		* Added sm_sound_sentence to enable the above modification.
+	1.16  Feb 18, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added check for Fake clients (bots) before Emitting Sounds
+		  or sending Chat messages.
+	1.17  Mar 1, 2008
+		* Modified by -=|JFH|=-Naris
+		* Fixed crash in Counter-Strike (Windows) by NOT calling GetSoundDuration()
+		  unless the SDKVersion >= 30 (Version or Orangebox/TF2)
+	1.18  Mar 2, 2008
+		* Modified by -=|JFH|=-Naris
+		* Also added check to not call GetSoundDuration() for mp3 files.
+		* Added sm_sound_logging to turn logging of sounds played on and off.
+		* Added sm_sound_allow_bots to allow bots to trigger sounds.
+	1.19  Mar 2, 2008
+		* Modified by -=|JFH|=-Naris
+		* Removed sm_sound_allow_bots to allow bots to trigger sounds.
+		* Removed several checks for Fake Clients.
+		* Commented out code that calls GetSoundDuration()
+	1.19.1	Dec 10, 2008
+		* Modified by Woody
+		* Added volume setting cvar sm_saysounds_volume
+		* Added individual sound volume override with cfg file key "volume"
+	1.20  Mar 16, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added AutoExecConfig()
+		* Removed code that calls GetSoundDuration().
+	2.0   March 15, 2008
+	    * Modified by [RiCK] Stokes aka. FernFerret
+		* Made version 2.0 due to massive functionallity change
+		* Changed Plugin name from Saysounds, to Saysoundshybrid
+		* Changed Reference from saysounds.cfg to saysoundshybrid.cfg
+		* Added ability to create sounds from actions in TF2 :) (Currently only 3 supported(Flag Events, Kill Events, 
+		- Medic Uber Event) more to be added later
+		* Added ability to hide soundmenu from non admins (sm_sound_showmenu)
+		* Added menu for admins to show ALL sounds admin and public (sm_all_sounds)
+		* Added above two items to admin menu under "Server Commands"
+		* Added a few new types of data that you can add in config file including "actiononly" which will allow
+		- SSH(SaySoundsHybrid) to play the sound, aka clients will download it, but they can't play it
+		- Other types are covered in the demo section of this file
+		* Changed the Sound_Menu function: Added AllSounds parameter
+		* Updated Credits
+	2.0.1 March 15, 2008
+		* Modified by [RiCK] Stokes aka. FernFerret
+		* Fixed Error about hiding the sound menu
+		* Updated to Core Version 1.17 - Fixed the crash on windows servers due to the getsoundduration
+		* Added Spy disguising event(boolean) when a spy goes to disguise, triggers a true, opposite when he goes undisguised
+	2.0.2 March 15, 2008
+		* Modified by [RiCK] Stokes aka. FernFerret
+		* Updated to Core Version 1.19 - The Following fixes were ported in:
+			1.18  Mar 2, 2008
+				* Modified by -=|JFH|=-Naris
+				* Also added check to not call GetSoundDuration() for mp3 files.
+				* Added sm_sound_logging to turn logging of sounds played on and off.
+				* Added sm_sound_allow_bots to allow bots to trigger sounds.
+			1.19  Mar 2, 2008
+				* Modified by -=|JFH|=-Naris
+				* Removed sm_sound_allow_bots to allow bots to trigger sounds.
+				* Removed several checks for Fake Clients.
+				* Commented out code that calls GetSoundDuration()
+		* Added event "build" Support
+	2.0.3 Mar 16, 2008
+		* Modified by -=|JFH|=-Naris
+		* Merged the last few saysounds changes with saysounds hybrid.
+	2.0.4 Jun 13, 2008
+		* Modified by -=|JFH|=-Naris
+		* Checks the GameType() before hooking TF2 events.
+	2.0.5 Aug 20, 2008
+		* Modified by Uberman
+		* Adds the chat "!stop" command to stop any currently playing sound
+	2.0.6 Oct 30, 2008
+		* Modified by gH0sTy
+		* Added usage of clientprefs extension (SM 1.1 only)
+		* If a client turns the playback of sounds on/off it will be stored in the clientprefs sqlite database
+		* The next time the client connects, the plugin will retrieve the saved value so clients that don't want
+		  to play sounds doesn't have to turn it off after every reconnect or mapchange 
+		* Added sm_play_cl_snd_off to restrict players with sounds turned off from playing sounds
+	3.0.0 Jun 15, 2008
+		* Modified by -=|JFH|=-Naris
+		* Added Karaoke mode.
+	3.0.5 Sep 30, 2008
+		* Merged Uberman !stop command into 3.0.0 by Naris
+	3.0.6 Oct 30, 2008
+		* Merged gH0sTy clientprefs code (to save user settings) into 3.0.0 by Naris
+	3.0.7 Jan 04, 2009
+		* Modified by gH0sTy
+		* fixed Anti-Soundspam Issue, (epic fail :P)
+		* Changed Version Cvar from "sm_saysounds_version" to "sm_saysounds_hybrid_version" so this plugin can be approved without the need to unapprove the original one
+	3.0.8 Jan 05, 2009
+		* Modified by gH0sTy
+		* fixed Anti-Soundspam Issue - Added the Function again that reads the duration from the saysounds.cfg; Added a check if the sound is a Karaoke sound (new bool:iskaraoke)
+		* NOTE: Haven't tested if Karaoke still works but it should
+	3.0.9 Jan 14, 2009
+		* Fixed broken duration that broke anti-spam, iskaraoke no longer required.
+		* Merged/Ported Woody's volume code (1.19.1) into 3.0.6 by Naris
+			* Added volume setting cvar sm_saysounds_volume
+			* Added individual sound volume override with cfg file key "volume"
+	3.1.0 Jan 15, 2009
+		* Modified by gH0sTy
+		* Fixed broken anti-spam
+	3.1.1 Feb 20, 2009
+		* Modified by W]M[D FernFerret
+		* Added following actions:
+		* hit_by_train
+		* drowned
+		* backstab
+		* crit_kill
+		* 
+		* Use these in your config the same as you would uber
+		* Special thanks to BigPimpNick(psychonic) and Octo, for parts of this code
+	3.1.2 Feb 26, 2009
+		* Modified by -=|JFH|=-Naris
+		* Don't precache sounds until they are played
+		* Incorporated gametype.inc into this source
+	3.1.3 Feb 27, 2009
+		* Modified by psychonic
+		* TF2 kill parameter names now use same weapon name as in game log (should clear up some confusion and fix some deflect_ kills not working)
+		* Added headshot support for css, dods, and tf2 (action "kill", param "headshot")
+		* Backstab is now (action "kill" param "backstab") to keep consistency
+		* Fixed some cases where plugin was going through extra logic (was continuing kill logic after finding sound to play (like for headshot, train, etc.)
+		* Fixed looking through tf2 logic for all games instead of just tf2
+		* Fixed potential issue with leaving out "param" for some special events
+	3.1.4 Apr 13, 2009
+		* Modified by gH0sTy
+		* Added IsValidClient function and replaced all IsClientInGame & !IsFakeClient with it
+		* Changed all cvar names to sm_saysoundhe* to have them listed beneath each other for a cvarlist output and make it easier to recognize them as a Say Sounds related cvar
+		* Added an "adult" param, if it's specified in saysounds.cfg it will, hide this sound from the sound menu, block the chat output for this trigger, announces the played sound as ADULT SOUND
+		* Added a "delay" param, if it's specified in saysounds.cfg it will delay the sound by x seconds (max delay 60 seconds)
+		* Added the possibility to reset the clients played sound count at round end (sm_saysoundhe_limit_sound_per_round)
+		* Support for playing sound for the round_start event (action "roundstart" param "roundstart")
+		* Added the possibility to restrict clients form playing a sound that was recently played (sm_saysoundhe_excl_last_sound)
+		* Added the possibility to hide the chat output for a sound trigger word (sm_saysoundhe_block_trigger)
+		* Colored Chat output
+	3.1.5 Apr 30, 2009
+		* Modified by gH0sTy
+		* Added a listfile == INVALID_HANDLE check for runSoundEvent
+		* Moved CheckJoin from OnClientAuthorized to OnClientPostAdminCheck as CheckJoin is done to early and listfile == INVALID_HANDLE (at least on my ZPS server)
+		* Added TF event for waiting_begins/ends (action "setupstart", "setupend" param "setupstart", "setupend")
+			and suddendeath_begin/end (action "suddendeathstart", "suddendeathend" param "suddendeathstart", "suddendeathend")
+	3.1.6 Jun 08, 2009
+		* Modified by edgecom
+		* Added support for TF2's new unlockable weapons
+			(huntsman , sniper rifle, back stab and ambassador)
+	3.1.7 Jun 15, 2009
+		* Modified by psychonic
+		* Fixed headshot and backstab actions in TF2
+		* Added "fall" action for TF2
+		* Added suicide action for all games
+	3.1.8 Jun 16, 2009
+		* Modified by gH0sTy
+		* Fixed suddendeath event
+		* Fixed Setup end event, there's no setup start event so "setupstart" is not available anymore
+		* Added delay support for event sounds
+	3.1.9 Jun 25, 2009
+		* Modified by psychoinc
+		* Fixed translation error "Native "ReplyToCommand" reported: Language phrase "No matching client" not found"
+	3.2.0 November 14, 2009
+		* Modified by gH0sTy
+		* Added round_start event for CS:S so the sound limit for players can be reset each round
+		* Fixed some join sound bugs:
+			* A join sound doesn't count to a players sound quota any more
+			* A join sound doesn't affect the anti sound spam function
+	3.2.1 April 30, 2010
+		* Modified by Naris
+		* Added ResourceManage to limit number of downloads per map
+	3.2.2 May 02, 2010
+		* Modified by gH0sTy
+		* Added Support for translations
+	3.2.3 May 03, 2010
+		* Modified by gH0sTy
+		* Fixed JoinSound where it was only played if the join spawn cvar was set to 1
+		* New cvar sm_saysoundhe_adult_announce to disable the announcement of played adult sounds
+		* Join sounds won't trigger the recently played function
+		* Additional translations + colouring
+	3.2.4 May 03, 2010
+		* Modified by gH0sTy
+		* Karaoke sounds won't trigger the recently played function
+	3.2.5 August 28, 2010
+		* Modified by gH0sTy
+		* Added Cookie Menu Support (!settings); Thx @ Miraculix
+		* Added round_end event for CSS; Thx @ grepplz
+		* Added possibility to play event sounds to: attacker, victim, both, ateam, vteam
+		* Support for random event sounds
+		* Fixed clients sound settings
+		*** changes by Miraculix ***
+		* Added: new CVAR: possibility to interrupt the current sound when a new start
+		* Added: new CVAR: possibility alive players do not hear sounds triggered by dead players
+		* Changed: players are banned permanently ('til unban)
+		* Changed: also dead players can be banned
+	3.2.6 March 16, 2011
+		* Modified by gH0sTy
+		* Added:	possibility to display a text message for a sound
+		* Changed:	Joinsounds won't play again after a map change
+	4.0.0 July 17, 2011
+		* Modified by gH0sTy
+		* Added: More settings for the client, Enable/Disable Karaoke, chat messages, action souds, say sounds
+		* Added: Menu for client settings !sounds will now display a menu to the client
+		* Added: Sound Info Library Extension by berni (required now), duration of a soundfile will be automatically detected now
+				 Sampling Rate will also be detected and logs to Path_SM/logs/saysounds_error.log if it's above 44100 Hz
+		* Added: Round End support for TF2 and DoD
+		* Added: Translation phrases for the client menu
+		* Changed: Removed case sensitivity for "action", "param" and playto
+		* Changed: "action" now reflect the corresponding event so some have changed 
+	4.0.1 July 22, 2011
+		* Modified by gH0sTy
+		* Added: Clients sound limits will now be restored on reconnect
+		* Changed: Setting the *_time_between_* cvars to 0 will now allow to play another sound while one is still playing
+		* Changed: Setting sm_saysoundhe_time_between_admin_sounds to -1 will completely bypass the anti soundspam protection for admins
+	4.0.2 July 27, 2011
+		* Modified by gH0sTy
+		* Fixed: Now using the databases.cfg settings to access the clientprefs DB
+	4.0.3 August 28, 2011
+		* Modified by gH0sTy
+		* Fixed: (TF2) playing round won/lost sounds at the same time to both teams
+	4.0.4 March 03, 2012
+		** Modified by Naris
+		* Updated: the ResourceManager derived functions (SetupSound() & PrepareSound()) to implement a cap to the number of different sounds
+				   played per map and added a convar (sm_saysoundhe_sound_max) to set that limit.
+		* Added: additional properties for sounds that can be set in the config file:
+				 enable, when set to 0 disables the sound -- defaults to 1
+				 title, if defined, used as the title of the sound in menus -- defaults to "" (uses the name of the sound as the title).
+		* Changed: Clients sound counts are stored in tries instead of a seperate sqlite DB
+		
+		** Modified by gH0sTy
+		* Changed: Using SetAuthIdCookie introduced in SM 1.4 to store the greeted cookie so we don't need to create a manual connection to the clienprefs DB
+		* Changed: Using Command Listeners instead of registering a console command for the "say" command and removed the need of a seperate Command_InsurgencySay
+	4.0.5 March 18, 2012
+		* Modified by gH0sTy
+		* Added: Play a sound if a mapvote starts/ends
+				 action "mapvote"
+				 param "start" or "end"
+		* Added: TF2: Play a sound if Waiting for Players round starts/ends
+				 action "wait4players"
+				 param "start" or "end"
+	4.0.6 October 07, 2012
+		* Modified by gH0sTy
+		* Changed: using tf2stocks for TF2 custom kills
+		* Changed: moved a few functions into seperate files
+		* Updated: translations
+		* Added: Support for client flags
+			* param "flags" can be added to a sound so only clients with this flag will have access to this sound
+			* new cvars
+				- sm_saysoundhe_sound_flags //User flags that will result in unlimited sounds
+				- sm_saysoundhe_time_between_flags //User flags to bypass the Time between sounds check
+				- sm_saysoundhe_flags //Flag(s) that will have a seperate sound limit
+				- sm_saysoundhe_flags_limit //Maximum sounds per person with the corresponding flag (0 for unlimited)
+				- sm_saysoundhe_stop_flags //User flags that are allowed to stop a sound
+				- sm_saysoundhe_confmenu_flags //User flags that are allowed to access the configuration menu
+
+Todo:
+	* Optimise keyvalues usage
