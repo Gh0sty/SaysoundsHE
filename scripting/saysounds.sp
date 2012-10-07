@@ -193,6 +193,8 @@ new bool:advertisements_enabled = false;
 //				make sure he won't get spammed with the corresponding sound
 new bool:g_bPlayedEvent2Client[MAXPLAYERS+1] = false;
 
+new sndChan = SNDCHAN_AUTO;
+
 //*****************************************************************
 //	------------------------------------------------------------- *
 //						*** Plugin Info ***						  *
@@ -370,6 +372,7 @@ public OnPluginStart()
 		{
 			LogMessage("[Say Sounds] Detected Counter-Strike: Global Offensive");
 			HookEvent("round_start", Event_RoundStart);
+			sndChan = SNDCHAN_ITEM;
 		}
 		else if (GetGameType() == other_game)
 		{
@@ -463,6 +466,7 @@ public EnableChanged(Handle:convar, const String:oldValue[], const String:newVal
 		{
 			LogMessage("[Say Sounds] Detected Counter-Strike: Global Offensive");
 			HookEvent("round_start", Event_RoundStart);
+			sndChan = SNDCHAN_ITEM;
 		}
 		else if (GetGameType() == other_game)
 		{
@@ -1647,7 +1651,7 @@ Play_Sound(const String:filelocation[], Float:volume)
 		}
 	}
 	if (clientcount)
-		PrepareAndEmitSound(clientlist, clientcount, filelocation, .volume=volume);
+		PrepareAndEmitSound(clientlist, clientcount, filelocation, .channel=sndChan, .volume=volume);
 }
 
 //*****************************************************************
