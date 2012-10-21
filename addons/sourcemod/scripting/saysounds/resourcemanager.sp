@@ -162,9 +162,19 @@
 	{
 		if (PrepareSound(sample))
 		{
-			EmitSound(clients, numClients, sample, entity, channel,
-					  level, flags, volume, pitch, speakerentity,
-					  origin, dir, updatePos, soundtime);
+			if (gb_csgo)
+			{
+				for (new i = 0; i < numClients; i++)
+				{
+					ClientCommand(clients[i], "play *%s", sample);
+				}
+			}
+			else
+			{
+				EmitSound(clients, numClients, sample, entity, channel,
+						  level, flags, volume, pitch, speakerentity,
+						  origin, dir, updatePos, soundtime);
+			}
 		}
 	}
 
@@ -184,9 +194,16 @@
 	{
 		if (PrepareSound(sample))
 		{
-			EmitSoundToClient(client, sample, entity, channel,
-							  level, flags, volume, pitch, speakerentity,
-							  origin, dir, updatePos, soundtime);
+			if (gb_csgo)
+			{
+				ClientCommand(client, "play *%s", sample);
+			}
+			else
+			{
+				EmitSoundToClient(client, sample, entity, channel,
+								  level, flags, volume, pitch, speakerentity,
+								  origin, dir, updatePos, soundtime);
+			}
 		}
 	}
 #endif
