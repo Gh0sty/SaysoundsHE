@@ -64,7 +64,7 @@ User Commands:
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "4.0.6"
+#define PLUGIN_VERSION "4.0.7"
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -1038,7 +1038,11 @@ public runSoundEvent(Handle:event,const String:type[],const String:extra[],const
 
 			// Used for identifying the names of things
 			//PrintToChatAll("Found Subkey, trying to match (%s) with (%s)",extra,extraparam);
-			if(StrEqual(extra, extraparam, false) && checkSamplingRate(location))
+			
+			if(!IsGameSound(location) && !checkSamplingRate(location))
+				return false;
+			
+			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
 			{
 				// Next section performs random calculations, all percents in decimal from 1-0
 				new Float:random = KvGetFloat(listfile, "prob",1.0);
