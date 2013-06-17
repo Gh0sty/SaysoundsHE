@@ -1581,30 +1581,32 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 
 	//####### DURATION #######
 	// Get the handle to the soundfile
-	new Handle:h_Soundfile = INVALID_HANDLE;
 	new timebuf;
 	new samplerate;
 
-	h_Soundfile = OpenSoundFile(filelocation,true);
+	if (!IsGameSound(filelocation)){
+		new Handle:h_Soundfile = INVALID_HANDLE;
+		h_Soundfile = OpenSoundFile(filelocation,true);
 
-	if(h_Soundfile != INVALID_HANDLE)
-	{
-		// get the sound length
-		timebuf = GetSoundLength(h_Soundfile);
-		// get the sample rate
-		samplerate = GetSoundSamplingRate(h_Soundfile);
-		// close the handle
-		CloseHandle(h_Soundfile);
-	}
-	else
-		LogError("<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
+		if(h_Soundfile != INVALID_HANDLE)
+		{
+			// get the sound length
+			timebuf = GetSoundLength(h_Soundfile);
+			// get the sample rate
+			samplerate = GetSoundSamplingRate(h_Soundfile);
+			// close the handle
+			CloseHandle(h_Soundfile);
+		}
+		else
+			LogError("<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
 
-	// Check the sample rate and leave a message if it's above 44.1 kHz;
-	if (samplerate > 44100)
-	{
-		LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
-		PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
-		return;
+		// Check the sample rate and leave a message if it's above 44.1 kHz;
+		if (samplerate > 44100)
+		{
+			LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
+			PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
+			return;
+		}
 	}
 
 	new Float:duration = float(timebuf);
