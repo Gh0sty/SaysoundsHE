@@ -64,7 +64,7 @@ User Commands:
 
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "4.0.7"
+#define PLUGIN_VERSION "4.0.8"
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -1581,9 +1581,10 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 
 	//####### DURATION #######
 	// Get the handle to the soundfile
+	
 	new timebuf;
 	new samplerate;
-
+	
 	if (!IsGameSound(filelocation)){
 		new Handle:h_Soundfile = INVALID_HANDLE;
 		h_Soundfile = OpenSoundFile(filelocation,true);

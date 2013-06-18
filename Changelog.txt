@@ -316,6 +316,7 @@ Versions:
 		* Changed: using tf2stocks for TF2 custom kills
 		* Changed: moved a few functions into seperate files
 		* Updated: translations
+		* Added: Support for CS:GO
 		* Added: Support for client flags
 			* param "flags" can be added to a sound so only clients with this flag will have access to this sound
 			* new cvars
@@ -325,6 +326,12 @@ Versions:
 				- sm_saysoundhe_flags_limit //Maximum sounds per person with the corresponding flag (0 for unlimited)
 				- sm_saysoundhe_stop_flags //User flags that are allowed to stop a sound
 				- sm_saysoundhe_confmenu_flags //User flags that are allowed to access the configuration menu
+	4.0.7 June 01, 2013
+		* Modified by gH0sTy
+		* Fix for built in game sounds
+	4.0.8 June 17, 2013
+		* Modified by gH0sTy
+		* Another fix for built in game sounds
 
 Todo:
 	* Optimise keyvalues usage
