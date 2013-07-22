@@ -192,12 +192,9 @@
 	{
 		if (PrepareSound(sample))
 		{
-			else
-			{
-				EmitSoundToClient(client, sample, entity, channel,
+			EmitSoundToClient(client, sample, entity, channel,
 								  level, flags, volume, pitch, speakerentity,
 								  origin, dir, updatePos, soundtime);
-			}
 		}
 	}
 #endif
