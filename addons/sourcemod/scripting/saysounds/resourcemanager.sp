@@ -26,6 +26,13 @@
 	// Trie to hold precache status of sounds
 	new Handle:g_soundTrie = INVALID_HANDLE;
 
+	stock bool:FakePrecacheSound(const String:szPath[])
+	{
+		decl String:buffer[PLATFORM_MAX_PATH+1];
+		Format(buffer, sizeof(buffer), "*%s", szPath);
+		AddToStringTable(FindStringTable("soundprecache"), szPath);
+	}
+	
 	stock bool:PrepareSound(const String:sound[], bool:force=false, bool:preload=false)
 	{
 		new State:value = Unknown;
@@ -34,7 +41,7 @@
 			if (force || value >= Force || g_iSoundLimit <= 0 ||
 				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
 			{
-				PrecacheSound(sound, preload);
+				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload))
 				SetTrieValue(g_soundTrie, sound, Precached);
 			}
 			else
@@ -126,7 +133,7 @@
 			if (force || g_iSoundLimit <= 0 &&
 				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
 			{
-				PrecacheSound(sound, preload);
+				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload))
 
 				if (value < Precached)
 				{
@@ -162,18 +169,9 @@
 	{
 		if (PrepareSound(sample))
 		{
-			if (gb_csgo)
-			{
-				for (new i = 0; i < numClients; i++)
-				{
-					ClientCommand(clients[i], "play *%s", sample);
-				}
-			}
-			else
-			{
-				EmitSound(clients, numClients, sample, entity, channel,
-						  level, flags, volume, pitch, speakerentity,
-						  origin, dir, updatePos, soundtime);
+			EmitSound(clients, numClients, sample, entity, channel,
+						level, flags, volume, pitch, speakerentity,
+						origin, dir, updatePos, soundtime);
 			}
 		}
 	}
@@ -194,10 +192,6 @@
 	{
 		if (PrepareSound(sample))
 		{
-			if (gb_csgo)
-			{
-				ClientCommand(client, "play *%s", sample);
-			}
 			else
 			{
 				EmitSoundToClient(client, sample, entity, channel,
