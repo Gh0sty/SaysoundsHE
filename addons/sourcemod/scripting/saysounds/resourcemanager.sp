@@ -41,7 +41,7 @@
 			if (force || value >= Force || g_iSoundLimit <= 0 ||
 				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
 			{
-				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload))
+				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload));
 				SetTrieValue(g_soundTrie, sound, Precached);
 			}
 			else
@@ -133,7 +133,7 @@
 			if (force || g_iSoundLimit <= 0 &&
 				(g_soundTrie ? GetTrieSize(g_soundTrie) : 0) < g_iSoundLimit)
 			{
-				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload))
+				(gb_csgo ? FakePrecacheSound(sound) : PrecacheSound(sound, preload));
 
 				if (value < Precached)
 				{
@@ -172,7 +172,6 @@
 			EmitSound(clients, numClients, sample, entity, channel,
 						level, flags, volume, pitch, speakerentity,
 						origin, dir, updatePos, soundtime);
-			}
 		}
 	}
 
