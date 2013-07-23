@@ -30,7 +30,19 @@
 	{
 		decl String:buffer[PLATFORM_MAX_PATH+1];
 		Format(buffer, sizeof(buffer), "*%s", szPath);
-		AddToStringTable(FindStringTable("soundprecache"), szPath);
+		AddToStringTable(FindStringTable("soundprecache"), buffer);
+
+		////////////////////////debug/////////////////////////
+		for (new i = 1; i <= MaxClients; i++)
+		{
+			if(IsValidClient(i))
+			{
+				ClientCommand(i, "echo [dbg_fake] Path: %s", szPath);
+				ClientCommand(i, "echo [dbg_fake] Buff: %s", buffer);
+			}
+		}
+		//////////////////////////////////////////////////////
+		
 	}
 	
 	stock bool:PrepareSound(const String:sound[], bool:force=false, bool:preload=false)
@@ -169,9 +181,22 @@
 	{
 		if (PrepareSound(sample))
 		{
-			EmitSound(clients, numClients, sample, entity, channel,
+			decl String:SampleBuf[PLATFORM_MAX_PATH+1];
+			(gb_csgo ? Format(SampleBuf, sizeof(SampleBuf), "*%s", sample) : strcopy(SampleBuf, sizeof(SampleBuf), sample));
+			
+				EmitSound(clients, numClients, SampleBuf, entity, gb_csgo ? SNDCHAN_STATIC : channel,
 						level, flags, volume, pitch, speakerentity,
 						origin, dir, updatePos, soundtime);
+			
+				////////////////////////debug/////////////////////////
+				for (new i = 1; i <= MaxClients; i++)
+				{
+					if(IsValidClient(i))
+					{
+						ClientCommand(i, "echo [dbg_emit] Sample: %s : %i", sample, channel);
+					}
+				}
+				//////////////////////////////////////////////////////
 		}
 	}
 
