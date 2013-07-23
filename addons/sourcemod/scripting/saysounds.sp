@@ -1658,7 +1658,10 @@ Play_Sound(const String:filelocation[], Float:volume)
 		}
 	}
 	if (clientcount)
-		PrepareAndEmitSound(clientlist, clientcount, filelocation, .volume=volume);
+	{
+		new channel = (gb_csgo && GetConVarBool(cvarinterruptsound)) ? SNDCHAN_AUTO : SNDCHAN_STATIC;
+		PrepareAndEmitSound(clientlist, clientcount, filelocation, .volume=volume, .channel=channel);
+	}
 }
 
 //*****************************************************************

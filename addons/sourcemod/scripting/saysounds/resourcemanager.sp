@@ -172,7 +172,7 @@
 			decl String:SampleBuf[PLATFORM_MAX_PATH+1];
 			(gb_csgo ? Format(SampleBuf, sizeof(SampleBuf), "*%s", sample) : strcopy(SampleBuf, sizeof(SampleBuf), sample));
 			
-			EmitSound(clients, numClients, SampleBuf, entity, gb_csgo ? SNDCHAN_STATIC : channel,
+			EmitSound(clients, numClients, SampleBuf, entity, channel,
 					level, flags, volume, pitch, speakerentity,
 					origin, dir, updatePos, soundtime);
 		}
