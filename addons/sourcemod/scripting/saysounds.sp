@@ -1221,7 +1221,7 @@ public Action:runSoundEventTimer(Handle:timer,Handle:pack)
 public OnClientPostAdminCheck(client)
 {
 	decl String:auth[64];
-	if (GetClientAuthString(client,auth,sizeof(auth)))
+	if (GetClientAuthId(client,AuthId_Steam2,auth,sizeof(auth)))
 	{
 		if(IsValidClient(client) && !GetConVarBool(cvarjoinspawn))
 			CheckJoin(client, auth);
@@ -1252,7 +1252,7 @@ public PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 					if (firstSpawn[index])
 					{
 						decl String:auth[64];
-						GetClientAuthString(index,auth,sizeof(auth));
+						GetClientAuthId(index,AuthId_Steam2,auth,sizeof(auth));
 						CheckJoin(index, auth);
 						firstSpawn[index] = false;
 					}
@@ -1326,7 +1326,7 @@ public OnClientDisconnect(client)
 		if(GetConVarBool(cvarspecificjoinexit))
 		{
 			decl String:auth[64];
-			GetClientAuthString(client,auth,63);
+			GetClientAuthId(client,AuthId_Steam2,auth,sizeof(auth));
 
 			decl String:filelocation[PLATFORM_MAX_PATH+1];
 			KvRewind(listfile);
