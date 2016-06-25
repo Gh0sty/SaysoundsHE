@@ -41,7 +41,7 @@ User Commands:
 	!stop	 			 When used in chat will per-user stop any sound currently playing by this plug-in
 
 */
-
+//#pragma newdecls required
 #include <sourcemod>
 #include <sdktools>
 #include <clientprefs>
@@ -107,43 +107,43 @@ enum sound_types { normal_sounds, admin_sounds, karaoke_sounds, all_sounds };
 //					*** Cvar Handles ***						  *
 //	------------------------------------------------------------- *
 //*****************************************************************
-new Handle:cvarsaysoundversion		= INVALID_HANDLE;
-new Handle:cvarsoundenable			= INVALID_HANDLE;
-new Handle:cvarsoundlimit			= INVALID_HANDLE;
-new Handle:cvarsoundlimitFlags		= INVALID_HANDLE;
-new Handle:cvarsoundFlags			= INVALID_HANDLE;
-new Handle:cvarsoundFlagsLimit		= INVALID_HANDLE;
-new Handle:cvarsoundwarn			= INVALID_HANDLE;
-new Handle:cvarjoinexit				= INVALID_HANDLE;
-new Handle:cvarjoinspawn			= INVALID_HANDLE;
-new Handle:cvarspecificjoinexit		= INVALID_HANDLE;
-new Handle:cvartimebetween			= INVALID_HANDLE;
-new Handle:cvartimebetweenFlags		= INVALID_HANDLE;
-new Handle:cvaradmintime			= INVALID_HANDLE;
-new Handle:cvaradminwarn			= INVALID_HANDLE;
-new Handle:cvaradminlimit			= INVALID_HANDLE;
-new Handle:cvarannounce				= INVALID_HANDLE;
-new Handle:cvaradult				= INVALID_HANDLE;
-new Handle:cvarsentence				= INVALID_HANDLE;
-new Handle:cvarlogging				= INVALID_HANDLE;
-new Handle:cvarplayifclsndoff		= INVALID_HANDLE;
-new Handle:cvarkaraokedelay			= INVALID_HANDLE;
-new Handle:cvarvolume				= INVALID_HANDLE; // mod by Woody
-new Handle:cvarsoundlimitround		= INVALID_HANDLE;
-new Handle:cvarexcludelastsound		= INVALID_HANDLE;
-new Handle:cvarblocktrigger			= INVALID_HANDLE;
-new Handle:cvarinterruptsound		= INVALID_HANDLE;
-new Handle:cvarfilterifdead			= INVALID_HANDLE;
-new Handle:cvarTrackDisconnects  	= INVALID_HANDLE;
-new Handle:cvarStopFlags		  	= INVALID_HANDLE;
-new Handle:cvarMenuSettingsFlags	= INVALID_HANDLE;
-new Handle:g_hMapvoteDuration 		= INVALID_HANDLE;
+new Handle:cvarsaysoundversion		= null;
+new Handle:cvarsoundenable			= null;
+new Handle:cvarsoundlimit			= null;
+new Handle:cvarsoundlimitFlags		= null;
+new Handle:cvarsoundFlags			= null;
+new Handle:cvarsoundFlagsLimit		= null;
+new Handle:cvarsoundwarn			= null;
+new Handle:cvarjoinexit				= null;
+new Handle:cvarjoinspawn			= null;
+new Handle:cvarspecificjoinexit		= null;
+new Handle:cvartimebetween			= null;
+new Handle:cvartimebetweenFlags		= null;
+new Handle:cvaradmintime			= null;
+new Handle:cvaradminwarn			= null;
+new Handle:cvaradminlimit			= null;
+new Handle:cvarannounce				= null;
+new Handle:cvaradult				= null;
+new Handle:cvarsentence				= null;
+new Handle:cvarlogging				= null;
+new Handle:cvarplayifclsndoff		= null;
+new Handle:cvarkaraokedelay			= null;
+new Handle:cvarvolume				= null; // mod by Woody
+new Handle:cvarsoundlimitround		= null;
+new Handle:cvarexcludelastsound		= null;
+new Handle:cvarblocktrigger			= null;
+new Handle:cvarinterruptsound		= null;
+new Handle:cvarfilterifdead			= null;
+new Handle:cvarTrackDisconnects  	= null;
+new Handle:cvarStopFlags		  	= null;
+new Handle:cvarMenuSettingsFlags	= null;
+new Handle:g_hMapvoteDuration 		= null;
 //####FernFerret####/
-new Handle:cvarshowsoundmenu		= INVALID_HANDLE;
+new Handle:cvarshowsoundmenu		= null;
 //##################/
-new Handle:listfile					= INVALID_HANDLE;
-new Handle:hAdminMenu				= INVALID_HANDLE;
-new Handle:g_hSoundCountTrie			= INVALID_HANDLE;
+new Handle:listfile					= null;
+new Handle:hAdminMenu				= null;
+new Handle:g_hSoundCountTrie			= null;
 new String:soundlistfile[PLATFORM_MAX_PATH] = "";
 
 //*****************************************************************
@@ -151,14 +151,14 @@ new String:soundlistfile[PLATFORM_MAX_PATH] = "";
 //					*** Client Peferences ***					  *
 //	------------------------------------------------------------- *
 //*****************************************************************
-//new Handle:g_ssgeneral_cookie = INVALID_HANDLE;	// Cookie for storing clints general saysound setting (ON/OFF)
-new Handle:g_sssaysound_cookie		= INVALID_HANDLE;	// Cookie for storing clints saysound setting (ON/OFF)
-new Handle:g_ssevents_cookie		= INVALID_HANDLE;	// Cookie for storing clients eventsound setting (ON/OFF)
-new Handle:g_sschatmsg_cookie		= INVALID_HANDLE;	// Cookie for storing clients chat message setting (ON/OFF)
-new Handle:g_sskaraoke_cookie		= INVALID_HANDLE; // Cookie for storing clients karaoke setting (ON/OFF)
-new Handle:g_ssban_cookie			= INVALID_HANDLE;		// Cookie for storing if client is banned from using saysiunds
-new Handle:g_ssgreeted_cookie		= INVALID_HANDLE;	// Cookie for storing if we've played the welcome sound to the client
-//new Handle:g_dbClientprefs			= INVALID_HANDLE;	// Handle for the clientprefs SQLite DB
+//new Handle:g_ssgeneral_cookie = null;	// Cookie for storing clints general saysound setting (ON/OFF)
+new Handle:g_sssaysound_cookie		= null;	// Cookie for storing clints saysound setting (ON/OFF)
+new Handle:g_ssevents_cookie		= null;	// Cookie for storing clients eventsound setting (ON/OFF)
+new Handle:g_sschatmsg_cookie		= null;	// Cookie for storing clients chat message setting (ON/OFF)
+new Handle:g_sskaraoke_cookie		= null; // Cookie for storing clients karaoke setting (ON/OFF)
+new Handle:g_ssban_cookie			= null;		// Cookie for storing if client is banned from using saysiunds
+new Handle:g_ssgreeted_cookie		= null;	// Cookie for storing if we've played the welcome sound to the client
+//new Handle:g_dbClientprefs			= null;	// Handle for the clientprefs SQLite DB
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -179,12 +179,12 @@ new bool:hearalive = true;
 new bool:gb_csgo = false;
 
 // Variables for karaoke
-new Handle:karaokeFile = INVALID_HANDLE;
-new Handle:karaokeTimer = INVALID_HANDLE;
+new Handle:karaokeFile = null;
+new Handle:karaokeTimer = null;
 new Float:karaokeStartTime = 0.0;
 
 // Variables to enable/disable advertisments plugin during karaoke
-new Handle:cvaradvertisements = INVALID_HANDLE;
+new Handle:cvaradvertisements = null;
 new bool:advertisements_enabled = false;
 
 // Some event variable
@@ -234,53 +234,53 @@ public OnPluginStart()
 	LoadTranslations("saysoundhe.phrases");
 
 	// *** Creating the Cvars ***
-	cvarsaysoundversion = CreateConVar("sm_saysounds_hybrid_version", PLUGIN_VERSION, "Say Sounds Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off",FCVAR_PLUGIN);
+	cvarsaysoundversion = CreateConVar("sm_saysounds_hybrid_version", PLUGIN_VERSION, "Say Sounds Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off");
 	// Client limit cvars
-	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)",FCVAR_PLUGIN);
-	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)",FCVAR_PLUGIN);
-	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds",FCVAR_PLUGIN);
-	cvarsoundFlags = CreateConVar("sm_saysoundhe_flags","","Flag(s) that will have a seperate sound limit",FCVAR_PLUGIN);
-	cvarsoundFlagsLimit = CreateConVar("sm_saysoundhe_flags_limit","5","Maximum sounds per person with the corresponding flag (0 for unlimited)",FCVAR_PLUGIN);
+	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)");
+	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)");
+	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds");
+	cvarsoundFlags = CreateConVar("sm_saysoundhe_flags","","Flag(s) that will have a seperate sound limit");
+	cvarsoundFlagsLimit = CreateConVar("sm_saysoundhe_flags_limit","5","Maximum sounds per person with the corresponding flag (0 for unlimited)");
 	// Join cvars
-	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game",FCVAR_PLUGIN);
-	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound",FCVAR_PLUGIN);
-	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game",FCVAR_PLUGIN);
+	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game");
+	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound");
+	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game");
 	// Anti-Spam cavrs
-	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking",FCVAR_PLUGIN);
-	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check",FCVAR_PLUGIN);
+	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking");
+	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check");
 	// Admin limit cvars
-	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins",FCVAR_PLUGIN);
-	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)",FCVAR_PLUGIN);
-	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)",FCVAR_PLUGIN);
+	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins");
+	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)");
+	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)");
 	//
-	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map", FCVAR_PLUGIN);
+	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map");
 	//
-	cvarannounce = CreateConVar("sm_saysoundhe_sound_announce","1","Turns on announcements when a sound is played",FCVAR_PLUGIN);
-	cvaradult = CreateConVar("sm_saysoundhe_adult_announce","0","Announce played adult sounds? | 0 = off 1 = on",FCVAR_PLUGIN);
-	cvarsentence = CreateConVar("sm_saysoundhe_sound_sentence","0","When set, will trigger sounds if keyword is embedded in a sentence",FCVAR_PLUGIN);
-	cvarlogging = CreateConVar("sm_saysoundhe_sound_logging","0","When set, will log sounds that are played",FCVAR_PLUGIN);
-	cvarvolume = CreateConVar("sm_saysoundhe_saysounds_volume","1.0","Volume setting for Say Sounds (0.0 <= x <= 1.0)",FCVAR_PLUGIN,true,0.0,true,1.0); // mod by Woody
-	cvarplayifclsndoff = CreateConVar("sm_saysoundhe_play_cl_snd_off","0","When set, allows clients that have turned their sounds off to trigger sounds (0=off | 1=on)",FCVAR_PLUGIN);
-	cvarkaraokedelay = CreateConVar("sm_saysoundhe_karaoke_delay","15.0","Delay before playing a Karaoke song",FCVAR_PLUGIN);
-	cvarexcludelastsound = CreateConVar("sm_saysoundhe_excl_last_sound", "0", "If set, don't allow to play a sound that was recently played", FCVAR_PLUGIN);
-	cvarblocktrigger = CreateConVar("sm_saysoundhe_block_trigger", "0", "If set, block the sound trigger to be displayed in the chat window", FCVAR_PLUGIN);
-	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start", FCVAR_PLUGIN);
-	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players", FCVAR_PLUGIN);
-	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.", FCVAR_PLUGIN);
-	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound",FCVAR_PLUGIN);
-	cvarMenuSettingsFlags = CreateConVar("sm_saysoundhe_confmenu_flags","","User flags that are allowed to access the configuration menu",FCVAR_PLUGIN);
+	cvarannounce = CreateConVar("sm_saysoundhe_sound_announce","1","Turns on announcements when a sound is played");
+	cvaradult = CreateConVar("sm_saysoundhe_adult_announce","0","Announce played adult sounds? | 0 = off 1 = on");
+	cvarsentence = CreateConVar("sm_saysoundhe_sound_sentence","0","When set, will trigger sounds if keyword is embedded in a sentence");
+	cvarlogging = CreateConVar("sm_saysoundhe_sound_logging","0","When set, will log sounds that are played");
+	cvarvolume = CreateConVar("sm_saysoundhe_saysounds_volume","1.0","Volume setting for Say Sounds (0.0 <= x <= 1.0)",0,true,0.0,true,1.0); // mod by Woody
+	cvarplayifclsndoff = CreateConVar("sm_saysoundhe_play_cl_snd_off","0","When set, allows clients that have turned their sounds off to trigger sounds (0=off | 1=on)");
+	cvarkaraokedelay = CreateConVar("sm_saysoundhe_karaoke_delay","15.0","Delay before playing a Karaoke song");
+	cvarexcludelastsound = CreateConVar("sm_saysoundhe_excl_last_sound", "0", "If set, don't allow to play a sound that was recently played");
+	cvarblocktrigger = CreateConVar("sm_saysoundhe_block_trigger", "0", "If set, block the sound trigger to be displayed in the chat window");
+	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start");
+	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players");
+	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.");
+	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound");
+	cvarMenuSettingsFlags = CreateConVar("sm_saysoundhe_confmenu_flags","","User flags that are allowed to access the configuration menu");
 
 #if !defined _ResourceManager_included
-	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).", FCVAR_PLUGIN);
-	cvarSoundThreshold = CreateConVar("sm_saysoundhe_sound_threshold", "0", "Number of sounds to precache on map start (-1=unlimited).", FCVAR_PLUGIN);
-	cvarSoundLimitMap	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).", FCVAR_PLUGIN);
+	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).");
+	cvarSoundThreshold = CreateConVar("sm_saysoundhe_sound_threshold", "0", "Number of sounds to precache on map start (-1=unlimited).");
+	cvarSoundLimitMap	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).");
 #endif
 
 	//####FernFerret####//
 	// This is the Variable that will enable or disable the sound menu to public users, Admin users will always have
 	// access to their menus, From the admin menu it is a toggle variable
-	cvarshowsoundmenu = CreateConVar("sm_saysoundhe_showmenu","1","1 To show menu to users, 0 to hide menu from users (admins excluded)",FCVAR_PLUGIN);
+	cvarshowsoundmenu = CreateConVar("sm_saysoundhe_showmenu","1","1 To show menu to users, 0 to hide menu from users (admins excluded)");
 	//##################//
 
 	//##### Clientprefs #####
@@ -396,7 +396,7 @@ public OnPluginStart()
 	//	------------------------------------------------------------- *
 	//*****************************************************************
 	new Handle:topmenu;
-	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != INVALID_HANDLE))
+	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
 		OnAdminMenuReady(topmenu);
 
 	// *** Update the Plugin Version cvar ***
@@ -538,16 +538,16 @@ public EnableChanged(Handle:convar, const String:oldValue[], const String:newVal
 //*****************************************************************
 public OnPluginEnd()
 {
-	if (listfile != INVALID_HANDLE)
+	if (listfile != null)
 	{
 		CloseHandle(listfile);
-		listfile = INVALID_HANDLE;
+		listfile = null;
 	}
 
-	if (karaokeFile != INVALID_HANDLE)
+	if (karaokeFile != null)
 	{
 		CloseHandle(karaokeFile);
-		karaokeFile = INVALID_HANDLE;
+		karaokeFile = null;
 	}
 }
 
@@ -576,7 +576,7 @@ public OnMapStart()
 		g_iSoundLimit		= GetConVarInt(cvarSoundLimitMap);
 
 		// Setup trie to keep track of precached sounds
-		if (g_soundTrie == INVALID_HANDLE)
+		if (g_soundTrie == null)
 			g_soundTrie = CreateTrie();
 		else
 			ClearTrie(g_soundTrie);
@@ -615,34 +615,34 @@ public OnMapStart()
 //*****************************************************************
 public OnMapEnd()
 {
-	/*if (g_dbClientprefs != INVALID_HANDLE)
+	/*if (g_dbClientprefs != null)
 	{
 		CloseHandle(g_dbClientprefs);
-		g_dbClientprefs = INVALID_HANDLE;
+		g_dbClientprefs = null;
 	}*/
 
-	if (g_hSoundCountTrie != INVALID_HANDLE)
+	if (g_hSoundCountTrie != null)
 	{
 		CloseHandle(g_hSoundCountTrie);
-		g_hSoundCountTrie = INVALID_HANDLE;
+		g_hSoundCountTrie = null;
 	}
 
-	if (listfile != INVALID_HANDLE)
+	if (listfile != null)
 	{
 		CloseHandle(listfile);
-		listfile = INVALID_HANDLE;
+		listfile = null;
 	}
 
-	if (karaokeFile != INVALID_HANDLE)
+	if (karaokeFile != null)
 	{
 		CloseHandle(karaokeFile);
-		karaokeFile = INVALID_HANDLE;
+		karaokeFile = null;
 	}
 
-	if (karaokeTimer != INVALID_HANDLE)
+	if (karaokeTimer != null)
 	{
 		KillTimer(karaokeTimer);
-		karaokeTimer = INVALID_HANDLE;
+		karaokeTimer = null;
 	}
 
 #if !defined _ResourceManager_included
@@ -659,6 +659,111 @@ public OnMapEnd()
 
 //*****************************************************************
 //	------------------------------------------------------------- *
+//					*** Run Event Sounds ***					  *
+//	------------------------------------------------------------- *
+//*****************************************************************
+// Generic Sound event, this gets triggered whenever an event that is supported is triggered
+public runSoundEvent(Handle event, const char[] type, const char[] extra, int attacker, int victim, int team)
+{
+	decl String:action[PLATFORM_MAX_PATH+1];
+	decl String:extraparam[PLATFORM_MAX_PATH+1];
+	decl String:location[PLATFORM_MAX_PATH+1];
+	decl String:playto[PLATFORM_MAX_PATH+1];
+	new bool:result = false;
+
+	if(listfile == null)
+		return false;
+
+	KvRewind(listfile);
+	if (!KvGotoFirstSubKey(listfile))
+		return false;
+
+	// Do while loop that finds out what extra parameter is and plays according sound, also adds random
+	do
+	{
+		KvGetString(listfile, "action",action,sizeof(action),"");
+		//PrintToServer("Found Subkey, trying to match (%s) with (%s)",action,type);
+		if (StrEqual(action, type, false))
+		{
+			if (!KvGetNum(listfile, "enable", 1))
+				continue;
+
+			//KvGetString(listfile, "file", location, sizeof(location),"");
+			// ###### Random Sound ######
+			decl String:file[8] = "file";
+			new count = KvGetNum(listfile, "count", 1);
+			if (count > 1)
+				Format(file, sizeof(file), "file%d", GetRandomInt(1,count));
+
+			if (StrEqual(file, "file1"))
+				KvGetString(listfile, "file", location, sizeof(location), "");
+			else
+				KvGetString(listfile, file, location, sizeof(location),"");
+
+
+			// ###### Random Sound End ######
+			KvGetString(listfile, "param",extraparam,sizeof(extraparam),action);
+			if(team == -1)
+				KvGetString(listfile, "playto",playto,sizeof(playto),"all");
+			else
+				KvGetString(listfile, "playto",playto,sizeof(playto),"RoundEvent");
+
+			// Used for identifying the names of things
+			//PrintToChatAll("Found Subkey, trying to match (%s) with (%s)",extra,extraparam);
+			
+			if(!IsGameSound(location) && !checkSamplingRate(location))
+				return false;
+			
+			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
+			{
+				// Next section performs random calculations, all percents in decimal from 1-0
+				new Float:random = KvGetFloat(listfile, "prob",1.0);
+				// Added error checking  for the random number
+				if(random <= 0.0)
+				{
+					random = 0.01;
+					PrintToChatAll("Your random value for (%s) is <= 0, please make it above 0",location);
+				}
+				else if(random > 1.0)
+					random = 1.0;
+
+				new Float:generated = GetRandomFloat(0.0,1.0);
+				// Debug line for new action sounds -- FernFerret
+				//PrintToChatAll("I found action: %s",action);
+				if (generated <= random)
+				{
+					//### Delay
+					new Float:delay = KvGetFloat(listfile, "delay", 0.1);
+					if(delay < 0.1)
+						delay = 0.1;
+					else if (delay > 60.0)
+						delay = 60.0;
+
+					new Handle:pack;
+					CreateDataTimer(delay,runSoundEventTimer,pack, TIMER_FLAG_NO_MAPCHANGE);
+					WritePackCell(pack, attacker);
+					WritePackCell(pack, victim);
+					WritePackCell(pack, team);
+					WritePackString(pack, playto);
+					WritePackString(pack, location);
+					ResetPack(pack);
+					//PrepareAndEmitSound(clientlist, clientcount, location);
+				}
+				result = true;
+			}
+			else
+				result = false;
+		}
+		else
+			result = false;
+	} while (KvGotoNextKey(listfile));
+	//return false;
+	return result;
+}
+
+
+//*****************************************************************
+//	------------------------------------------------------------- *
 //						  *** Map Vote ***						  *
 //	------------------------------------------------------------- *
 //*****************************************************************
@@ -666,7 +771,7 @@ public OnMapVoteStarted()
 {
 	g_hMapvoteDuration	= FindConVar("sm_mapvote_voteduration");
 	
-	if (g_hMapvoteDuration != INVALID_HANDLE)
+	if (g_hMapvoteDuration != null)
 		CreateTimer(GetConVarFloat(g_hMapvoteDuration), TimerMapvoteEnd);
 	else
 		LogError("ConVar sm_mapvote_voteduration not found!");
@@ -709,7 +814,7 @@ public Action:Load_Sounds(Handle:timer)
 	}
 	else
 	{
-		if (listfile != INVALID_HANDLE)
+		if (listfile != null)
 			CloseHandle(listfile);
 
 		listfile = CreateKeyValues("soundlist");
@@ -769,6 +874,8 @@ public Action:reset_PlayedEvent2Client(Handle:timer, any:client)
 	g_bPlayedEvent2Client[client] = false;
 }
 
+
+
 //*****************************************************************
 //	------------------------------------------------------------- *
 //						*** Event Actions ***					  *
@@ -781,7 +888,7 @@ public Action:Event_Disconnect(Handle:event,const String:name[],bool:dontBroadca
 	SetAuthIdCookie(SteamID, g_ssgreeted_cookie, "0");
 	new id2Client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	if (g_hSoundCountTrie != INVALID_HANDLE)
+	if (g_hSoundCountTrie != null)
 		SetTrieValue(g_hSoundCountTrie, SteamID, SndCount[id2Client]);
 }
 
@@ -965,129 +1072,26 @@ public Action:Event_Hurt(Handle:event,const String:name[],bool:dontBroadcast)
 // ####### TF2 #######
 public Action:Event_Build(Handle:event,const String:name[],bool:dontBroadcast)
 {
-	decl String:object[PLATFORM_MAX_PATH+1];
+	decl String:objectte[PLATFORM_MAX_PATH+1];
 	new objectint = GetEventInt(event,"object");
 	new attacker = GetClientOfUserId(GetEventInt(event, "userid"));
 	switch(objectint)
 	{
 		case 0:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(objectte,sizeof(objectte),"obj_dispenser");
 		case 1:
-			strcopy(object,sizeof(object),"obj_tele_in");
+			strcopy(objectte,sizeof(objectte),"obj_tele_in");
 		case 2:
-			strcopy(object,sizeof(object),"obj_tele_out");
+			strcopy(objectte,sizeof(objectte),"obj_tele_out");
 		case 3:
-			strcopy(object,sizeof(object),"obj_sentry");
+			strcopy(objectte,sizeof(objectte),"obj_sentry");
 		default:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(objectte,sizeof(objectte),"obj_dispenser");
 	}
-	runSoundEvent(event,"build",object,attacker,0,-1);
+	runSoundEvent(event,"build",objectte,attacker,0,-1);
 	return Plugin_Continue;
 }
 
-//*****************************************************************
-//	------------------------------------------------------------- *
-//					*** Run Event Sounds ***					  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-// Generic Sound event, this gets triggered whenever an event that is supported is triggered
-public runSoundEvent(Handle:event,const String:type[],const String:extra[],const attacker,victim,team)
-{
-	decl String:action[PLATFORM_MAX_PATH+1];
-	decl String:extraparam[PLATFORM_MAX_PATH+1];
-	decl String:location[PLATFORM_MAX_PATH+1];
-	decl String:playto[PLATFORM_MAX_PATH+1];
-	new bool:result = false;
-
-	if(listfile == INVALID_HANDLE)
-		return false;
-
-	KvRewind(listfile);
-	if (!KvGotoFirstSubKey(listfile))
-		return false;
-
-	// Do while loop that finds out what extra parameter is and plays according sound, also adds random
-	do
-	{
-		KvGetString(listfile, "action",action,sizeof(action),"");
-		//PrintToServer("Found Subkey, trying to match (%s) with (%s)",action,type);
-		if (StrEqual(action, type, false))
-		{
-			if (!KvGetNum(listfile, "enable", 1))
-				continue;
-
-			//KvGetString(listfile, "file", location, sizeof(location),"");
-			// ###### Random Sound ######
-			decl String:file[8] = "file";
-			new count = KvGetNum(listfile, "count", 1);
-			if (count > 1)
-				Format(file, sizeof(file), "file%d", GetRandomInt(1,count));
-
-			if (StrEqual(file, "file1"))
-				KvGetString(listfile, "file", location, sizeof(location), "");
-			else
-				KvGetString(listfile, file, location, sizeof(location),"");
-
-
-			// ###### Random Sound End ######
-			KvGetString(listfile, "param",extraparam,sizeof(extraparam),action);
-			if(team == -1)
-				KvGetString(listfile, "playto",playto,sizeof(playto),"all");
-			else
-				KvGetString(listfile, "playto",playto,sizeof(playto),"RoundEvent");
-
-			// Used for identifying the names of things
-			//PrintToChatAll("Found Subkey, trying to match (%s) with (%s)",extra,extraparam);
-			
-			if(!IsGameSound(location) && !checkSamplingRate(location))
-				return false;
-			
-			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
-			{
-				// Next section performs random calculations, all percents in decimal from 1-0
-				new Float:random = KvGetFloat(listfile, "prob",1.0);
-				// Added error checking  for the random number
-				if(random <= 0.0)
-				{
-					random = 0.01;
-					PrintToChatAll("Your random value for (%s) is <= 0, please make it above 0",location);
-				}
-				else if(random > 1.0)
-					random = 1.0;
-
-				new Float:generated = GetRandomFloat(0.0,1.0);
-				// Debug line for new action sounds -- FernFerret
-				//PrintToChatAll("I found action: %s",action);
-				if (generated <= random)
-				{
-					//### Delay
-					new Float:delay = KvGetFloat(listfile, "delay", 0.1);
-					if(delay < 0.1)
-						delay = 0.1;
-					else if (delay > 60.0)
-						delay = 60.0;
-
-					new Handle:pack;
-					CreateDataTimer(delay,runSoundEventTimer,pack, TIMER_FLAG_NO_MAPCHANGE);
-					WritePackCell(pack, attacker);
-					WritePackCell(pack, victim);
-					WritePackCell(pack, team);
-					WritePackString(pack, playto);
-					WritePackString(pack, location);
-					ResetPack(pack);
-					//PrepareAndEmitSound(clientlist, clientcount, location);
-				}
-				result = true;
-			}
-			else
-				result = false;
-		}
-		else
-			result = false;
-	} while (KvGotoNextKey(listfile));
-	//return false;
-	return result;
-}
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -1217,12 +1221,12 @@ public Action:runSoundEventTimer(Handle:timer,Handle:pack)
 public OnClientPostAdminCheck(client)
 {
 	decl String:auth[64];
-	if (GetClientAuthString(client,auth,sizeof(auth)))
+	if (GetClientAuthId(client,AuthId_Steam2,auth,sizeof(auth)))
 	{
 		if(IsValidClient(client) && !GetConVarBool(cvarjoinspawn))
 			CheckJoin(client, auth);
 
-		if (g_hSoundCountTrie == INVALID_HANDLE ||
+		if (g_hSoundCountTrie == null ||
 			!GetTrieValue(g_hSoundCountTrie, auth, SndCount[client]))
 		{
 			SndCount[client] = 0;
@@ -1248,7 +1252,7 @@ public PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 					if (firstSpawn[index])
 					{
 						decl String:auth[64];
-						GetClientAuthString(index,auth,sizeof(auth));
+						GetClientAuthId(index,AuthId_Steam2,auth,sizeof(auth));
 						CheckJoin(index, auth);
 						firstSpawn[index] = false;
 					}
@@ -1261,7 +1265,7 @@ public PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 //####### Check Join #######
 public CheckJoin(client, const String:auth[])
 {
-	/* if(listfile == INVALID_HANDLE)
+	/* if(listfile == null)
 		return;*/
 
 	if(GetConVarBool(cvarspecificjoinexit))
@@ -1312,7 +1316,7 @@ public CheckJoin(client, const String:auth[])
 //####### Client Disconnect #######
 public OnClientDisconnect(client)
 {
-	if(GetConVarBool(cvarjoinexit) && listfile != INVALID_HANDLE)
+	if(GetConVarBool(cvarjoinexit) && listfile != null)
 	{
 		//SndCount[client] = 0;
 		//LastSound[client] = 0.0;
@@ -1322,7 +1326,7 @@ public OnClientDisconnect(client)
 		if(GetConVarBool(cvarspecificjoinexit))
 		{
 			decl String:auth[64];
-			GetClientAuthString(client,auth,63);
+			GetClientAuthId(client,AuthId_Steam2,auth,sizeof(auth));
 
 			decl String:filelocation[PLATFORM_MAX_PATH+1];
 			KvRewind(listfile);
@@ -1586,10 +1590,10 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	new samplerate;
 	
 	if (!IsGameSound(filelocation)){
-		new Handle:h_Soundfile = INVALID_HANDLE;
+		new Handle:h_Soundfile = null;
 		h_Soundfile = OpenSoundFile(filelocation,true);
 
-		if(h_Soundfile != INVALID_HANDLE)
+		if(h_Soundfile != null)
 		{
 			// get the sound length
 			timebuf = GetSoundLength(h_Soundfile);
@@ -1599,7 +1603,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 			CloseHandle(h_Soundfile);
 		}
 		else
-			LogError("<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
+			LogError("<Send_Sound> null for file \"%s\" ", filelocation);
 
 		// Check the sample rate and leave a message if it's above 44.1 kHz;
 		if (samplerate > 44100)
@@ -1986,7 +1990,7 @@ public Load_Karaoke(client, const String:filelocation[], const String:name[], co
 	}
 	else
 	{
-		if (karaokeFile != INVALID_HANDLE){
+		if (karaokeFile != null){
 			CloseHandle(karaokeFile);
 		}
 		karaokeFile = CreateKeyValues(name);
@@ -2116,7 +2120,7 @@ Karaoke_Start(client, const String:filelocation[], const String:name[])
 		else
 		{
 			CloseHandle(karaokeFile);
-			karaokeFile = INVALID_HANDLE;
+			karaokeFile = null;
 			time = 0.0;
 		}
 	}
@@ -2124,7 +2128,7 @@ Karaoke_Start(client, const String:filelocation[], const String:name[])
 	if (time > 0.0)
 	{
 		cvaradvertisements = FindConVar("sm_advertisements_enabled");
-		if (cvaradvertisements != INVALID_HANDLE)
+		if (cvaradvertisements != null)
 		{
 			advertisements_enabled = GetConVarBool(cvaradvertisements);
 			SetConVarBool(cvaradvertisements, false);
@@ -2139,7 +2143,7 @@ Karaoke_Start(client, const String:filelocation[], const String:name[])
 	}
 	else
 	{
-		karaokeTimer = INVALID_HANDLE;
+		karaokeTimer = null;
 	}
 
 	karaokeStartTime = GetEngineTime();
@@ -2218,7 +2222,7 @@ public Action:Karaoke_Timer(Handle:timer,Handle:pack)
 	ReadPackString(pack, text[2], sizeof(text[]));
 	Karaoke_Message(text);
 
-	if (karaokeFile != INVALID_HANDLE)
+	if (karaokeFile != null)
 	{
 		if (KvGotoNextKey(karaokeFile))
 		{
@@ -2242,21 +2246,21 @@ public Action:Karaoke_Timer(Handle:timer,Handle:pack)
 		else
 		{
 			CloseHandle(karaokeFile);
-			karaokeFile = INVALID_HANDLE;
-			karaokeTimer = INVALID_HANDLE;
+			karaokeFile = null;
+			karaokeTimer = null;
 			karaokeStartTime = 0.0;
 
-			if (cvaradvertisements != INVALID_HANDLE)
+			if (cvaradvertisements != null)
 			{
 				SetConVarBool(cvaradvertisements, advertisements_enabled);
 				CloseHandle(cvaradvertisements);
-				cvaradvertisements = INVALID_HANDLE;
+				cvaradvertisements = null;
 			}
 		}
 	}
 	else
 	{
-		karaokeTimer = INVALID_HANDLE;
+		karaokeTimer = null;
 	}
 }
 
@@ -2462,7 +2466,7 @@ ClearSoundCountTrie()
 		(GetConVarInt(cvarsoundlimit) > 0 ||
 		 GetConVarInt(cvaradminlimit) > 0))
 	{
-		if (g_hSoundCountTrie == INVALID_HANDLE)
+		if (g_hSoundCountTrie == null)
 			g_hSoundCountTrie = CreateTrie();
 		else
 			ClearTrie(g_hSoundCountTrie);
@@ -2470,6 +2474,6 @@ ClearSoundCountTrie()
 	else if (g_hSoundCountTrie)
 	{
 		CloseHandle(g_hSoundCountTrie);
-		g_hSoundCountTrie = INVALID_HANDLE;
+		g_hSoundCountTrie = null;
 	}
 }
