@@ -659,6 +659,111 @@ public OnMapEnd()
 
 //*****************************************************************
 //	------------------------------------------------------------- *
+//					*** Run Event Sounds ***					  *
+//	------------------------------------------------------------- *
+//*****************************************************************
+// Generic Sound event, this gets triggered whenever an event that is supported is triggered
+public runSoundEvent(Handle event, const char[] type, const char[] extra, int attacker, int victim, int team)
+{
+	decl String:action[PLATFORM_MAX_PATH+1];
+	decl String:extraparam[PLATFORM_MAX_PATH+1];
+	decl String:location[PLATFORM_MAX_PATH+1];
+	decl String:playto[PLATFORM_MAX_PATH+1];
+	new bool:result = false;
+
+	if(listfile == null)
+		return false;
+
+	KvRewind(listfile);
+	if (!KvGotoFirstSubKey(listfile))
+		return false;
+
+	// Do while loop that finds out what extra parameter is and plays according sound, also adds random
+	do
+	{
+		KvGetString(listfile, "action",action,sizeof(action),"");
+		//PrintToServer("Found Subkey, trying to match (%s) with (%s)",action,type);
+		if (StrEqual(action, type, false))
+		{
+			if (!KvGetNum(listfile, "enable", 1))
+				continue;
+
+			//KvGetString(listfile, "file", location, sizeof(location),"");
+			// ###### Random Sound ######
+			decl String:file[8] = "file";
+			new count = KvGetNum(listfile, "count", 1);
+			if (count > 1)
+				Format(file, sizeof(file), "file%d", GetRandomInt(1,count));
+
+			if (StrEqual(file, "file1"))
+				KvGetString(listfile, "file", location, sizeof(location), "");
+			else
+				KvGetString(listfile, file, location, sizeof(location),"");
+
+
+			// ###### Random Sound End ######
+			KvGetString(listfile, "param",extraparam,sizeof(extraparam),action);
+			if(team == -1)
+				KvGetString(listfile, "playto",playto,sizeof(playto),"all");
+			else
+				KvGetString(listfile, "playto",playto,sizeof(playto),"RoundEvent");
+
+			// Used for identifying the names of things
+			//PrintToChatAll("Found Subkey, trying to match (%s) with (%s)",extra,extraparam);
+			
+			if(!IsGameSound(location) && !checkSamplingRate(location))
+				return false;
+			
+			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
+			{
+				// Next section performs random calculations, all percents in decimal from 1-0
+				new Float:random = KvGetFloat(listfile, "prob",1.0);
+				// Added error checking  for the random number
+				if(random <= 0.0)
+				{
+					random = 0.01;
+					PrintToChatAll("Your random value for (%s) is <= 0, please make it above 0",location);
+				}
+				else if(random > 1.0)
+					random = 1.0;
+
+				new Float:generated = GetRandomFloat(0.0,1.0);
+				// Debug line for new action sounds -- FernFerret
+				//PrintToChatAll("I found action: %s",action);
+				if (generated <= random)
+				{
+					//### Delay
+					new Float:delay = KvGetFloat(listfile, "delay", 0.1);
+					if(delay < 0.1)
+						delay = 0.1;
+					else if (delay > 60.0)
+						delay = 60.0;
+
+					new Handle:pack;
+					CreateDataTimer(delay,runSoundEventTimer,pack, TIMER_FLAG_NO_MAPCHANGE);
+					WritePackCell(pack, attacker);
+					WritePackCell(pack, victim);
+					WritePackCell(pack, team);
+					WritePackString(pack, playto);
+					WritePackString(pack, location);
+					ResetPack(pack);
+					//PrepareAndEmitSound(clientlist, clientcount, location);
+				}
+				result = true;
+			}
+			else
+				result = false;
+		}
+		else
+			result = false;
+	} while (KvGotoNextKey(listfile));
+	//return false;
+	return result;
+}
+
+
+//*****************************************************************
+//	------------------------------------------------------------- *
 //						  *** Map Vote ***						  *
 //	------------------------------------------------------------- *
 //*****************************************************************
@@ -671,12 +776,12 @@ public OnMapVoteStarted()
 	else
 		LogError("ConVar sm_mapvote_voteduration not found!");
 	
-	runSoundEvent(null,"mapvote","start",0,0,-1);
+	runSoundEvent(INVALID_HANDLE,"mapvote","start",0,0,-1);
 }
 
 public Action:TimerMapvoteEnd(Handle:timer)
 {
-	runSoundEvent(null,"mapvote","end",0,0,-1);
+	runSoundEvent(INVALID_HANDLE,"mapvote","end",0,0,-1);
 }
 
 //*****************************************************************
@@ -686,12 +791,12 @@ public Action:TimerMapvoteEnd(Handle:timer)
 //*****************************************************************
 public TF2_OnWaitingForPlayersStart()
 {
-	runSoundEvent(null,"wait4players","start",0,0,-1);
+	runSoundEvent(INVALID_HANDLE,"wait4players","start",0,0,-1);
 }
 
 public TF2_OnWaitingForPlayersEnd()
 {
-	runSoundEvent(null,"wait4players","end",0,0,-1);
+	runSoundEvent(INVALID_HANDLE,"wait4players","end",0,0,-1);
 }
 
 //*****************************************************************
@@ -768,6 +873,8 @@ public Action:reset_PlayedEvent2Client(Handle:timer, any:client)
 {
 	g_bPlayedEvent2Client[client] = false;
 }
+
+
 
 //*****************************************************************
 //	------------------------------------------------------------- *
@@ -965,129 +1072,26 @@ public Action:Event_Hurt(Handle:event,const String:name[],bool:dontBroadcast)
 // ####### TF2 #######
 public Action:Event_Build(Handle:event,const String:name[],bool:dontBroadcast)
 {
-	decl String:object[PLATFORM_MAX_PATH+1];
+	decl String:objectte[PLATFORM_MAX_PATH+1];
 	new objectint = GetEventInt(event,"object");
 	new attacker = GetClientOfUserId(GetEventInt(event, "userid"));
 	switch(objectint)
 	{
 		case 0:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(objectte,sizeof(objectte),"obj_dispenser");
 		case 1:
-			strcopy(object,sizeof(object),"obj_tele_in");
+			strcopy(objectte,sizeof(objectte),"obj_tele_in");
 		case 2:
-			strcopy(object,sizeof(object),"obj_tele_out");
+			strcopy(objectte,sizeof(objectte),"obj_tele_out");
 		case 3:
-			strcopy(object,sizeof(object),"obj_sentry");
+			strcopy(objectte,sizeof(objectte),"obj_sentry");
 		default:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(objectte,sizeof(objectte),"obj_dispenser");
 	}
-	runSoundEvent(event,"build",object,attacker,0,-1);
+	runSoundEvent(event,"build",objectte,attacker,0,-1);
 	return Plugin_Continue;
 }
 
-//*****************************************************************
-//	------------------------------------------------------------- *
-//					*** Run Event Sounds ***					  *
-//	------------------------------------------------------------- *
-//*****************************************************************
-// Generic Sound event, this gets triggered whenever an event that is supported is triggered
-public runSoundEvent(Handle:event,const char[] type,const char[] extra,attacker,victim,team)
-{
-	decl String:action[PLATFORM_MAX_PATH+1];
-	decl String:extraparam[PLATFORM_MAX_PATH+1];
-	decl String:location[PLATFORM_MAX_PATH+1];
-	decl String:playto[PLATFORM_MAX_PATH+1];
-	new bool:result = false;
-
-	if(listfile == null)
-		return false;
-
-	KvRewind(listfile);
-	if (!KvGotoFirstSubKey(listfile))
-		return false;
-
-	// Do while loop that finds out what extra parameter is and plays according sound, also adds random
-	do
-	{
-		KvGetString(listfile, "action",action,sizeof(action),"");
-		//PrintToServer("Found Subkey, trying to match (%s) with (%s)",action,type);
-		if (StrEqual(action, type, false))
-		{
-			if (!KvGetNum(listfile, "enable", 1))
-				continue;
-
-			//KvGetString(listfile, "file", location, sizeof(location),"");
-			// ###### Random Sound ######
-			decl String:file[8] = "file";
-			new count = KvGetNum(listfile, "count", 1);
-			if (count > 1)
-				Format(file, sizeof(file), "file%d", GetRandomInt(1,count));
-
-			if (StrEqual(file, "file1"))
-				KvGetString(listfile, "file", location, sizeof(location), "");
-			else
-				KvGetString(listfile, file, location, sizeof(location),"");
-
-
-			// ###### Random Sound End ######
-			KvGetString(listfile, "param",extraparam,sizeof(extraparam),action);
-			if(team == -1)
-				KvGetString(listfile, "playto",playto,sizeof(playto),"all");
-			else
-				KvGetString(listfile, "playto",playto,sizeof(playto),"RoundEvent");
-
-			// Used for identifying the names of things
-			//PrintToChatAll("Found Subkey, trying to match (%s) with (%s)",extra,extraparam);
-			
-			if(!IsGameSound(location) && !checkSamplingRate(location))
-				return false;
-			
-			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
-			{
-				// Next section performs random calculations, all percents in decimal from 1-0
-				new Float:random = KvGetFloat(listfile, "prob",1.0);
-				// Added error checking  for the random number
-				if(random <= 0.0)
-				{
-					random = 0.01;
-					PrintToChatAll("Your random value for (%s) is <= 0, please make it above 0",location);
-				}
-				else if(random > 1.0)
-					random = 1.0;
-
-				new Float:generated = GetRandomFloat(0.0,1.0);
-				// Debug line for new action sounds -- FernFerret
-				//PrintToChatAll("I found action: %s",action);
-				if (generated <= random)
-				{
-					//### Delay
-					new Float:delay = KvGetFloat(listfile, "delay", 0.1);
-					if(delay < 0.1)
-						delay = 0.1;
-					else if (delay > 60.0)
-						delay = 60.0;
-
-					new Handle:pack;
-					CreateDataTimer(delay,runSoundEventTimer,pack, TIMER_FLAG_NO_MAPCHANGE);
-					WritePackCell(pack, attacker);
-					WritePackCell(pack, victim);
-					WritePackCell(pack, team);
-					WritePackString(pack, playto);
-					WritePackString(pack, location);
-					ResetPack(pack);
-					//PrepareAndEmitSound(clientlist, clientcount, location);
-				}
-				result = true;
-			}
-			else
-				result = false;
-		}
-		else
-			result = false;
-	} while (KvGotoNextKey(listfile));
-	//return false;
-	return result;
-}
 
 //*****************************************************************
 //	------------------------------------------------------------- *
