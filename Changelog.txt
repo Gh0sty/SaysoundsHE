@@ -332,6 +332,7 @@ Versions:
 	4.0.8 June 17, 2013
 		* Modified by gH0sTy
 		* Another fix for built in game sounds
-
+	4.0.9 June 25, 2016
+		* Fixed issue for cs go and interrupt cvar
 Todo:
 	* Optimise keyvalues usage
