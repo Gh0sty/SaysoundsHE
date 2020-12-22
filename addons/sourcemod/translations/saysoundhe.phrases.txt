@@ -38,6 +38,7 @@
 	{
 		"en"	"Sorry, you don't have access to this sound"
 		"de"	"Du hast keinen Zugriff auf den Sound"
+		"ru"	"Извините, у Вас нет доступа к этому звуку"
 	}
 	"AdminSounds"
 	{
@@ -99,14 +100,14 @@
 	{
 		"en"    "Quota has been reset for all players"
 		"de"    "Kontingent wurde für alle zurückgesetzt"
-		"ru"	"Лимит звуков был обнулен для всех игроков"
+		"ru"	"Лимит звуков был обнулён для всех игроков"
 	}
 	"QuotaResetUser"
 	{
 		"#format"	"{1:s}"
 		"en"    "Quota has been reset for {1}"
 		"de"    "Kontingent wurde für {1} zurückgesetzt"
-		"ru"	"Лимит звуков обнулен для {1}"
+		"ru"	"Лимит звуков обнулён для {1}"
 	}
 	"SoundBanUsage"
 	{
@@ -159,56 +160,67 @@
 		"#format"	"{1:N},{2:s}"
 		"en"    "{1} played {2}"
 		"de"    "{1} spielte {2}"
+		"ru"    "{1} проигран {2}"
 	}
 	"PlayedAdultSound"
 	{
 		"#format"	"{1:N}"
 		"en"    "{1} played CENSORED SOUND"
 		"de"    "{1} spielte ZENSIERT"
+		"ru"    "{1} проигран ЗВУК ПОД ЦЕНЗУРОЙ"
 	}
 	"SaysoundsMenu"
 	{
 		"en"    "Say Sounds Menu"
 		"de"    "Say Sounds Menü"
+		"ru"    "Меню Say Sounds"
 	}
 	"EnableSaysound"
 	{
 		"en"	"Enable say sounds"
 		"de"	"Aktiviere Say Sounds"
+		"ru"	"Включить say sounds"
 	}
 	"DisableSaysound"
 	{
 		"en"	"Disable say sounds"
 		"de"	"Deaktiviere Say Sounds"
+		"ru"	"Отключить say sounds"
 	}
 	"EnableEvents"
 	{
 		"en"	"Enable action sounds"
 		"de"	"Aktiviere Action Sounds"
+		"ru"	"Включить звуки события"
 	}
 	"DisableEvents"
 	{
 		"en"	"Disable action sounds"
 		"de"	"Deaktiviere Action Sounds"
+		"ru"	"Отключить звуки события"
 	}
 	"EnableKaraoke"
 	{
 		"en"	"Enable Karaoke"
 		"de"	"Aktiviere Karaoke"
+		"ru"	"Включить караоке"
 	}
 	"DisableKaraoke"
 	{
 		"en"	"Disable Karaoke"
 		"de"	"Deaktiviere Karaoke"
+		"ru"	"Отключить караоке"
 	}
 	"EnableChat"
 	{
 		"en"	"Enable chat display"
 		"de"	"Aktiviere Chat Anzeige"
+		"ru"	"Включить отображение чата"
 	}
 	"DisableChat"
 	{
 		"en"	"Disable chat display"
 		"de"	"Deaktiviere Chat Anzeige"
+		"ru"	"Отключить отображение чата"
 	}
 }
