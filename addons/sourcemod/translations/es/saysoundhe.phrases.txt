@@ -1,0 +1,172 @@
+"Phrases"
+{
+	"SoundsDisabled"
+	{
+		"es" "Sonidos inactivos"
+	}
+
+	"SoundsEnabled"
+	{
+		"es" "Sonidos activos"
+	}
+
+	"Soundlist"
+	{
+		"es" "Abre tu consola para ver la lista de atajos de sonidos"
+	}
+
+	"ActionSounds"
+	{
+		"es" "Lo sentimos ¡este es un sonido de acción!"
+	}
+
+	"NoAccess"
+	{
+		"es" "Lo sentimos, no tienes acceso a este sonido"
+	}
+
+	"AdminSounds"
+	{
+		"es" "Lo sentimos ¡no estás autorizado para reproducir este sonido!"
+	}
+
+	"SpamSounds"
+	{
+		"es" "Por favor ¡no satures los sonidos!"
+	}
+
+	"SpamAdminSounds"
+	{
+		"es" "Por favor ¡no satures los sonidos de administrador!"
+	}
+
+	"RecentlyPlayed"
+	{
+		"es" "Lo sentimos, este sonido ha sido reproducido recientemente"
+	}
+
+	"QuotaReched"
+	{
+		"es" "Lo sentimos ¡has alcanzado tu límite de sonidos!"
+	}
+
+	"NoSoundsLeft"
+	{
+		"es" "¡No puedes usar más sonidos!"
+	}
+
+	"SoundLeft"
+	{
+		"es" "¡Solo puedes usar {1} sonido más!"
+	}
+
+	"SoundLeftPlural"
+	{
+		"es" "¡Solo puedes usar {1} sonidos más!"
+	}
+
+	"QuotaResetUsage"
+	{
+		"es" "Uso: sm_sound_reset <usuario | all> : Reinicia el límite de sonidos del usuario, o de todos los jugadores"
+	}
+
+	"QuotaResetAll"
+	{
+		"es" "Se ha reiniciado el límite de todos los jugadores"
+	}
+
+	"QuotaResetUser"
+	{
+		"es" "Se ha reiniciado el límite de {1}"
+	}
+
+	"SoundBanUsage"
+	{
+		"es" "Uso: sm_sound_ban <usuario> : Prohíbe a un usuario usar sonidos"
+	}
+
+	"AlreadyBanned"
+	{
+		"es" "¡{1} ya está desautorizado!"
+	}
+
+	"PlayerBanned"
+	{
+		"es" "¡{1} ha sido desautorizado!"
+	}
+
+	"SoundUnbanUsage"
+	{
+		"es" "Uso: sm_sound_unban <usuario> <1|0> : Re-autoriza a un usuario a usar sonidos"
+	}
+
+	"NotBanned"
+	{
+		"es" "¡{1} ya está autorizado!"
+	}
+
+	"PlayerUnbanned"
+	{
+		"es" "¡{1} ha sido re-autorizado!"
+	}
+
+	"AdminMenu"
+	{
+		"es" "¡Debes ser administrador para ver este menú!"
+	}
+
+	"PlayedSound"
+	{
+		"es" "{1} reprodujo {2}"
+	}
+
+	"PlayedAdultSound"
+	{
+		"es" "{1} reprodujo un SONIDO CENSURADO"
+	}
+
+	"SaysoundsMenu"
+	{
+		"es" "Menú Sonidos Chat"
+	}
+
+	"EnableSaysound"
+	{
+		"es" "Activar Sonidos"
+	}
+
+	"DisableSaysound"
+	{
+		"es" "Desactivar Sonidos"
+	}
+
+	"EnableEvents"
+	{
+		"es" "Activar Sonidos Acción"
+	}
+
+	"DisableEvents"
+	{
+		"es" "Quitar Sonidos Acción"
+	}
+
+	"EnableKaraoke"
+	{
+		"es" "Activar Karaoke"
+	}
+
+	"DisableKaraoke"
+	{
+		"es" "Desactivar Karaoke"
+	}
+
+	"EnableChat"
+	{
+		"es" "Activar texto chat"
+	}
+
+	"DisableChat"
+	{
+		"es" "Desactivar texto chat"
+	}
+}
