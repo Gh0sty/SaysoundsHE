@@ -1554,8 +1554,9 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	new adultonly = KvGetNum(listfile, "adult",0);
 	new singleonly = KvGetNum(listfile, "single",0);
 
-	decl String:txtmsg[256];
+	decl String:txtmsg[256], String:title[256];
 	txtmsg[0] = '\0';
+	KvGetString(listfile, "title", title, sizeof(title));
 
 	if (joinsound)
 		KvGetString(listfile, "text", txtmsg, sizeof(txtmsg));
@@ -1564,8 +1565,12 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	if (!joinsound && !exitsound)
 		KvGetString(listfile, "text", txtmsg, sizeof(txtmsg));
 
-	new actiononly = KvGetNum(listfile, "actiononly",0);
-	
+	if (title[0] != '\0')
+	{
+		Format(txtmsg, sizeof(txtmsg), "%s (%s)", title, txtmsg);
+	}
+
+	new actiononly = KvGetNum(listfile, "actiononly", 0);
 	decl String:accflags[26];
 	accflags[0] = '\0';
 	
