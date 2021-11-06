@@ -1554,7 +1554,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	new adultonly = KvGetNum(listfile, "adult",0);
 	new singleonly = KvGetNum(listfile, "single",0);
 
-	decl String:txtmsg[256], String:title[256];
+	decl String:txtmsg[256], String:title[128];
 	txtmsg[0] = '\0';
 	KvGetString(listfile, "title", title, sizeof(title));
 
@@ -1564,11 +1564,6 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		KvGetString(listfile, "etext", txtmsg, sizeof(txtmsg));
 	if (!joinsound && !exitsound)
 		KvGetString(listfile, "text", txtmsg, sizeof(txtmsg));
-
-	if (title[0] != '\0')
-	{
-		Format(txtmsg, sizeof(txtmsg), "%s (%s)", title, txtmsg);
-	}
 
 	new actiononly = KvGetNum(listfile, "actiononly", 0);
 	decl String:accflags[26];
@@ -1596,17 +1591,17 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		samplerate = GetSoundSamplingRate(h_Soundfile);
 		// close the handle
 		CloseHandle(h_Soundfile);
-	}
-	else
-		LogError("<Send_Sound> INVALID_HANDLE for file \"%s\" ", filelocation);
 
-	// Check the sample rate and leave a message if it's above 44.1 kHz;
-	if (FileExists(filelocation) && samplerate > 44100)
-	{
-		LogError("Invalid sample rate (\%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
-		PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
-		return;
+		// Check the sample rate and leave a message if it's above 44.1 kHz
+		if (samplerate > 44100 && FileExists(filelocation))
+		{
+			LogError("Invalid sample rate (%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
+			PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
+			return;
+		}
 	}
+	else if (!IsGameSound(filelocation))
+		LogError("<Send_Sound> INVALID_HANDLE for file \"%s\"", filelocation);
 
 	new Float:duration = float(timebuf);
 	new Float:defVol = GetConVarFloat(cvarvolume);
@@ -1632,6 +1627,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 	WritePackFloat(pack, volume); // mod by Woody
 	WritePackString(pack, filelocation);
 	WritePackString(pack, name);
+	WritePackString(pack, title);
 	WritePackCell(pack, tmp_joinsound);
 	WritePackString(pack, txtmsg);
 	WritePackString(pack, accflags);
@@ -1666,7 +1662,7 @@ Play_Sound(const String:filelocation[], Float:volume)
 public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 {
 	decl String:filelocation[PLATFORM_MAX_PATH+1];
-	decl String:name[PLATFORM_MAX_PATH+1];
+	decl String:name[PLATFORM_MAX_PATH+1], String:title[128];
 	decl String:chatBuffer[256];
 	decl String:txtmsg[256];
 	txtmsg[0] = '\0';
@@ -1683,6 +1679,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	new Float:volume = ReadPackFloat(pack); // mod by Woody
 	ReadPackString(pack, filelocation, sizeof(filelocation));
 	ReadPackString(pack, name , sizeof(name));
+	ReadPackString(pack, title, sizeof(title));
 	new joinsound = ReadPackCell(pack);
 	ReadPackString(pack, txtmsg , sizeof(txtmsg));
 	ReadPackString(pack, accflags , sizeof(accflags));
@@ -1872,6 +1869,11 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 						}
 						else
 						{
+							if (title[0] != '\0')
+							{
+								Format(name, sizeof(name), "%s ('%s')", title, name);
+							}
+
 							//PrintToChatAll("%t", "PlayedSound", client, name);
 							dispatchChatMessage(client, "PlayedSound", name, true);
 						}

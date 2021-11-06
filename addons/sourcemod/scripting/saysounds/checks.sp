@@ -24,6 +24,39 @@ bool:HasClientFlags (const String:flags[], client)
 	return false;
 }
 
+public IsGameSound (const String:file[])
+{
+	if (!strncmp(file, "ambient", 7) ||
+		!strncmp(file, "beams", 5) ||
+		!strncmp(file, "buttons", 7) ||
+		!strncmp(file, "coach", 5) ||
+		!strncmp(file, "combined", 8) ||
+		!strncmp(file, "commentary", 10) ||
+		!strncmp(file, "common", 6) ||
+		!strncmp(file, "doors", 5) ||
+		!strncmp(file, "friends", 7) ||
+		!strncmp(file, "hl1", 3) ||
+		!strncmp(file, "items", 5) ||
+		!strncmp(file, "midi", 4) ||
+		!strncmp(file, "misc", 4) ||
+		!strncmp(file, "music", 5) ||
+		!strncmp(file, "npc", 3) ||
+		!strncmp(file, "physics", 7) ||
+		!strncmp(file, "pl_hoodoo", 9) ||
+		!strncmp(file, "plats", 5) ||
+		!strncmp(file, "player", 6) ||
+		!strncmp(file, "resource", 8) ||
+		!strncmp(file, "replay", 6) ||
+		!strncmp(file, "test", 4) ||
+		!strncmp(file, "ui", 2) ||
+		!strncmp(file, "vehicles", 8) ||
+		!strncmp(file, "vo", 2) ||
+		!strncmp(file, "weapons", 7))
+		return true;
+	else
+		return false;
+}
+
 public IsValidClient (client)
 {
 	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || IsFakeClient(client) || IsClientReplay(client) || IsClientSourceTV(client))
