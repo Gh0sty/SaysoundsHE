@@ -1418,7 +1418,7 @@ public Action:Command_Say(client, const String:command[], argc){
 		if(strcmp(speech[startidx],"!sounds",false) == 0 || strcmp(speech[startidx],"sounds",false) == 0){
 
 			if (confMenuFlags[0] == '\0' || HasClientFlags(confMenuFlags, client))
-				ShowClientPrefMenu(client);
+				ShowClientPrefMenu(client, false);
 
 			return Plugin_Handled;
 
