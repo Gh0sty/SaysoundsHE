@@ -192,7 +192,7 @@ new bool:advertisements_enabled = false;
 //new g_BroadcastAudioTeam;
 //	Kill Event: If someone kills a few clients with a crit
 //				make sure he won't get spammed with the corresponding sound
-new bool:g_bPlayedEvent2Client[MAXPLAYERS+1] = false;
+new bool:g_bPlayedEvent2Client[MAXPLAYERS+1];
 
 
 //*****************************************************************
@@ -234,53 +234,53 @@ public OnPluginStart()
 	LoadTranslations("saysoundhe.phrases");
 
 	// *** Creating the Cvars ***
-	cvarsaysoundversion = CreateConVar("sm_saysounds_hybrid_version", PLUGIN_VERSION, "Say Sounds Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off",FCVAR_PLUGIN);
+	cvarsaysoundversion = CreateConVar("sm_saysounds_hybrid_version", PLUGIN_VERSION, "Say Sounds Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	cvarsoundenable = CreateConVar("sm_saysoundhe_enable","1","Turns Sounds On/Off");
 	// Client limit cvars
-	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)",FCVAR_PLUGIN);
-	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)",FCVAR_PLUGIN);
-	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds",FCVAR_PLUGIN);
-	cvarsoundFlags = CreateConVar("sm_saysoundhe_flags","","Flag(s) that will have a seperate sound limit",FCVAR_PLUGIN);
-	cvarsoundFlagsLimit = CreateConVar("sm_saysoundhe_flags_limit","5","Maximum sounds per person with the corresponding flag (0 for unlimited)",FCVAR_PLUGIN);
+	cvarsoundwarn = CreateConVar("sm_saysoundhe_sound_warn","3","Number of sounds to warn person at (0 for no warnings)");
+	cvarsoundlimit = CreateConVar("sm_saysoundhe_sound_limit","5","Maximum sounds per person (0 for unlimited)");
+	cvarsoundlimitFlags = CreateConVar("sm_saysoundhe_sound_flags","","User flags that will result in unlimited sounds");
+	cvarsoundFlags = CreateConVar("sm_saysoundhe_flags","","Flag(s) that will have a seperate sound limit");
+	cvarsoundFlagsLimit = CreateConVar("sm_saysoundhe_flags_limit","5","Maximum sounds per person with the corresponding flag (0 for unlimited)");
 	// Join cvars
-	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game",FCVAR_PLUGIN);
-	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound",FCVAR_PLUGIN);
-	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game",FCVAR_PLUGIN);
+	cvarjoinexit = CreateConVar("sm_saysoundhe_join_exit","0","Play sounds when someone joins or exits the game");
+	cvarjoinspawn = CreateConVar("sm_saysoundhe_join_spawn","1","Wait until the player spawns before playing the join sound");
+	cvarspecificjoinexit = CreateConVar("sm_saysoundhe_specific_join_exit","1","Play sounds when specific steam ID joins or exits the game");
 	// Anti-Spam cavrs
-	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking",FCVAR_PLUGIN);
-	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check",FCVAR_PLUGIN);
+	cvartimebetween = CreateConVar("sm_saysoundhe_time_between_sounds","4.5","Time between each sound trigger, 0.0 to disable checking");
+	cvartimebetweenFlags = CreateConVar("sm_saysoundhe_time_between_flags","","User flags to bypass the Time between sounds check");
 	// Admin limit cvars
-	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins",FCVAR_PLUGIN);
-	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)",FCVAR_PLUGIN);
-	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)",FCVAR_PLUGIN);
+	cvaradmintime = CreateConVar("sm_saysoundhe_time_between_admin_sounds","4.5","Time between each admin sound trigger, 0.0 to disable checking for admin sounds \nSet to -1 to completely bypass the soundspam protection for admins");
+	cvaradminwarn = CreateConVar("sm_saysoundhe_sound_admin_warn","0","Number of sounds to warn admin at (0 for no warnings)");
+	cvaradminlimit = CreateConVar("sm_saysoundhe_sound_admin_limit","0","Maximum sounds per admin (0 for unlimited)");
 	//
-	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map", FCVAR_PLUGIN);
+	cvarsoundlimitround = CreateConVar("sm_saysoundhe_limit_sound_per_round", "0", "If set, sm_saysoundhe_sound_limit is the limit per round instead of per map");
 	//
-	cvarannounce = CreateConVar("sm_saysoundhe_sound_announce","1","Turns on announcements when a sound is played",FCVAR_PLUGIN);
-	cvaradult = CreateConVar("sm_saysoundhe_adult_announce","0","Announce played adult sounds? | 0 = off 1 = on",FCVAR_PLUGIN);
-	cvarsentence = CreateConVar("sm_saysoundhe_sound_sentence","0","When set, will trigger sounds if keyword is embedded in a sentence",FCVAR_PLUGIN);
-	cvarlogging = CreateConVar("sm_saysoundhe_sound_logging","0","When set, will log sounds that are played",FCVAR_PLUGIN);
-	cvarvolume = CreateConVar("sm_saysoundhe_saysounds_volume","1.0","Volume setting for Say Sounds (0.0 <= x <= 1.0)",FCVAR_PLUGIN,true,0.0,true,1.0); // mod by Woody
-	cvarplayifclsndoff = CreateConVar("sm_saysoundhe_play_cl_snd_off","0","When set, allows clients that have turned their sounds off to trigger sounds (0=off | 1=on)",FCVAR_PLUGIN);
-	cvarkaraokedelay = CreateConVar("sm_saysoundhe_karaoke_delay","15.0","Delay before playing a Karaoke song",FCVAR_PLUGIN);
-	cvarexcludelastsound = CreateConVar("sm_saysoundhe_excl_last_sound", "0", "If set, don't allow to play a sound that was recently played", FCVAR_PLUGIN);
-	cvarblocktrigger = CreateConVar("sm_saysoundhe_block_trigger", "0", "If set, block the sound trigger to be displayed in the chat window", FCVAR_PLUGIN);
-	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start", FCVAR_PLUGIN);
-	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players", FCVAR_PLUGIN);
-	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.", FCVAR_PLUGIN);
-	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound",FCVAR_PLUGIN);
-	cvarMenuSettingsFlags = CreateConVar("sm_saysoundhe_confmenu_flags","","User flags that are allowed to access the configuration menu",FCVAR_PLUGIN);
+	cvarannounce = CreateConVar("sm_saysoundhe_sound_announce","1","Turns on announcements when a sound is played");
+	cvaradult = CreateConVar("sm_saysoundhe_adult_announce","0","Announce played adult sounds? | 0 = off 1 = on");
+	cvarsentence = CreateConVar("sm_saysoundhe_sound_sentence","0","When set, will trigger sounds if keyword is embedded in a sentence");
+	cvarlogging = CreateConVar("sm_saysoundhe_sound_logging","0","When set, will log sounds that are played");
+	cvarvolume = CreateConVar("sm_saysoundhe_saysounds_volume","1.0","Volume setting for Say Sounds (0.0 <= x <= 1.0)",_,true,0.0,true,1.0); // mod by Woody
+	cvarplayifclsndoff = CreateConVar("sm_saysoundhe_play_cl_snd_off","0","When set, allows clients that have turned their sounds off to trigger sounds (0=off | 1=on)");
+	cvarkaraokedelay = CreateConVar("sm_saysoundhe_karaoke_delay","15.0","Delay before playing a Karaoke song");
+	cvarexcludelastsound = CreateConVar("sm_saysoundhe_excl_last_sound", "0", "If set, don't allow to play a sound that was recently played");
+	cvarblocktrigger = CreateConVar("sm_saysoundhe_block_trigger", "0", "If set, block the sound trigger to be displayed in the chat window");
+	cvarinterruptsound = CreateConVar("sm_saysoundhe_interrupt_sound", "0", "If set, interrupt the current sound when a new start");
+	cvarfilterifdead = CreateConVar("sm_saysoundhe_filter_if_dead", "0", "If set, alive players do not hear sounds triggered by dead players");
+	cvarTrackDisconnects = CreateConVar("sm_saysoundhe_track_disconnects", "1", "If set, stores sound counts when clients leave and loads them when they join.");
+	cvarStopFlags = CreateConVar("sm_saysoundhe_stop_flags","","User flags that are allowed to stop a sound");
+	cvarMenuSettingsFlags = CreateConVar("sm_saysoundhe_confmenu_flags","","User flags that are allowed to access the configuration menu");
 
 #if !defined _ResourceManager_included
-	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).", FCVAR_PLUGIN);
-	cvarSoundThreshold = CreateConVar("sm_saysoundhe_sound_threshold", "0", "Number of sounds to precache on map start (-1=unlimited).", FCVAR_PLUGIN);
-	cvarSoundLimitMap	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).", FCVAR_PLUGIN);
+	cvarDownloadThreshold = CreateConVar("sm_saysoundhe_download_threshold", "-1", "Number of sounds to download per map start (-1=unlimited).");
+	cvarSoundThreshold = CreateConVar("sm_saysoundhe_sound_threshold", "0", "Number of sounds to precache on map start (-1=unlimited).");
+	cvarSoundLimitMap	 = CreateConVar("sm_saysoundhe_sound_max", "-1", "Maximum number of sounds to allow (-1=unlimited).");
 #endif
 
 	//####FernFerret####//
 	// This is the Variable that will enable or disable the sound menu to public users, Admin users will always have
 	// access to their menus, From the admin menu it is a toggle variable
-	cvarshowsoundmenu = CreateConVar("sm_saysoundhe_showmenu","1","1 To show menu to users, 0 to hide menu from users (admins excluded)",FCVAR_PLUGIN);
+	cvarshowsoundmenu = CreateConVar("sm_saysoundhe_showmenu","1","1 To show menu to users, 0 to hide menu from users (admins excluded)");
 	//##################//
 
 	//##### Clientprefs #####
@@ -776,13 +776,17 @@ public Action:reset_PlayedEvent2Client(Handle:timer, any:client)
 //*****************************************************************
 public Action:Event_Disconnect(Handle:event,const String:name[],bool:dontBroadcast)
 {
-	decl String:SteamID[60];
-	GetEventString(event, "networkid", SteamID, sizeof(SteamID));
-	SetAuthIdCookie(SteamID, g_ssgreeted_cookie, "0");
-	new id2Client = GetClientOfUserId(GetEventInt(event, "userid"));
+	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	if (g_hSoundCountTrie != INVALID_HANDLE)
-		SetTrieValue(g_hSoundCountTrie, SteamID, SndCount[id2Client]);
+	if (client > 0)
+	{
+		decl String:auth[64];
+		GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+		SetAuthIdCookie(auth, g_ssgreeted_cookie, "0");
+
+		if (g_hSoundCountTrie != INVALID_HANDLE)
+			SetTrieValue(g_hSoundCountTrie, auth, SndCount[client]);
+	}
 }
 
 public Action:OnAudioBroadcast(Handle:event, const String:name[], bool:dontBroadcast)
@@ -965,23 +969,23 @@ public Action:Event_Hurt(Handle:event,const String:name[],bool:dontBroadcast)
 // ####### TF2 #######
 public Action:Event_Build(Handle:event,const String:name[],bool:dontBroadcast)
 {
-	decl String:object[PLATFORM_MAX_PATH+1];
+	decl String:obj[PLATFORM_MAX_PATH+1];
 	new objectint = GetEventInt(event,"object");
 	new attacker = GetClientOfUserId(GetEventInt(event, "userid"));
 	switch(objectint)
 	{
 		case 0:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(obj,sizeof(obj),"obj_dispenser");
 		case 1:
-			strcopy(object,sizeof(object),"obj_tele_in");
+			strcopy(obj,sizeof(obj),"obj_tele_in");
 		case 2:
-			strcopy(object,sizeof(object),"obj_tele_out");
+			strcopy(obj,sizeof(obj),"obj_tele_out");
 		case 3:
-			strcopy(object,sizeof(object),"obj_sentry");
+			strcopy(obj,sizeof(obj),"obj_sentry");
 		default:
-			strcopy(object,sizeof(object),"obj_dispenser");
+			strcopy(obj,sizeof(obj),"obj_dispenser");
 	}
-	runSoundEvent(event,"build",object,attacker,0,-1);
+	runSoundEvent(event,"build",obj,attacker,0,-1);
 	return Plugin_Continue;
 }
 
@@ -1214,7 +1218,8 @@ public Action:runSoundEventTimer(Handle:timer,Handle:pack)
 public OnClientPostAdminCheck(client)
 {
 	decl String:auth[64];
-	if (GetClientAuthString(client,auth,sizeof(auth)))
+
+	if (GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth)))
 	{
 		if(IsValidClient(client) && !GetConVarBool(cvarjoinspawn))
 			CheckJoin(client, auth);
@@ -1245,7 +1250,7 @@ public PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 					if (firstSpawn[index])
 					{
 						decl String:auth[64];
-						GetClientAuthString(index,auth,sizeof(auth));
+						GetClientAuthId(index, AuthId_Steam2, auth, sizeof(auth));
 						CheckJoin(index, auth);
 						firstSpawn[index] = false;
 					}
@@ -1319,7 +1324,7 @@ public OnClientDisconnect(client)
 		if(GetConVarBool(cvarspecificjoinexit))
 		{
 			decl String:auth[64];
-			GetClientAuthString(client,auth,63);
+			GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
 
 			decl String:filelocation[PLATFORM_MAX_PATH+1];
 			KvRewind(listfile);
