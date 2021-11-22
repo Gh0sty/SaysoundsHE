@@ -60,7 +60,7 @@
 			decl String:file[PLATFORM_MAX_PATH+1];
 			Format(file, sizeof(file), "sound/%s", sound);
 
-			if (FileExists(file))
+			if (FileExists(file, true))
 			{
 				if (download < 0)
 				{

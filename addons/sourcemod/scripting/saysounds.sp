@@ -1036,7 +1036,7 @@ public runSoundEvent(Handle:event,const String:type[],const String:extra[],const
 			else
 				KvGetString(listfile, "playto",playto,sizeof(playto),"RoundEvent");
 
-			if (FileExists(location) && !checkSamplingRate(location))
+			if (!checkSamplingRate(location))
 				return false;
 			
 			if(StrEqual(extra, extraparam, false))// && checkSamplingRate(location))
@@ -1593,7 +1593,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		CloseHandle(h_Soundfile);
 
 		// Check the sample rate and leave a message if it's above 44.1 kHz
-		if (samplerate > 44100 && FileExists(filelocation))
+		if (samplerate > 44100)
 		{
 			LogError("Invalid sample rate (%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
 			PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
