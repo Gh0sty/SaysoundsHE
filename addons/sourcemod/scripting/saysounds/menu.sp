@@ -84,7 +84,7 @@ public Sound_Menu(client, sound_types:types)
 		if (!isadmin)
 		{
 			//PrintToChat(client,"[Say Sounds] You must be an admin view this menu!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "AdminMenu");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "AdminMenu");
 			return;
 		}
 	}

@@ -205,10 +205,7 @@ bool:checkClientCookies(iClient, iCase)
 				return false;
 			}
 		}
-		default:
-		{
-			return true;
-		}
 	}
+
 	return true;
 }
