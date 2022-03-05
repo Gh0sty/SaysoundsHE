@@ -57,12 +57,12 @@
 
 	"SoundLeft"
 	{
-		"es" "¡Solo puedes usar {1} sonido más!"
+		"es" "¡Solo puedes usar {green}{1} {default}sonido más!"
 	}
 
 	"SoundLeftPlural"
 	{
-		"es" "¡Solo puedes usar {1} sonidos más!"
+		"es" "¡Solo puedes usar {green}{1} {default}sonidos más!"
 	}
 
 	"QuotaResetUsage"
@@ -77,7 +77,7 @@
 
 	"QuotaResetUser"
 	{
-		"es" "Se ha reiniciado el límite de {1}"
+		"es" "Se ha reiniciado el límite de {green}{1}"
 	}
 
 	"SoundBanUsage"
@@ -117,12 +117,12 @@
 
 	"PlayedSound"
 	{
-		"es" "{1} reprodujo {2}"
+		"es" "{green}{1} {default}reprodujo {green}{2}"
 	}
 
 	"PlayedAdultSound"
 	{
-		"es" "{1} reprodujo un SONIDO CENSURADO"
+		"es" "{green}{1} {default}reprodujo un {green}SONIDO CENSURADO"
 	}
 
 	"SaysoundsMenu"

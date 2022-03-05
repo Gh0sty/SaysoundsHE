@@ -45,6 +45,8 @@ User Commands:
 #include <sourcemod>
 #include <sdktools>
 #include <clientprefs>
+#include <multicolors>
+
 #undef REQUIRE_EXTENSIONS
 #include <tf2_stocks>
 #define REQUIRE_EXTENSIONS
@@ -1436,8 +1438,8 @@ public Action:Command_Say(client, const String:command[], argc){
 
 			} else {
 				List_Sounds(client);
-				//PrintToChat(client,"\x04[Say Sounds]\x01 Check your console for a list of sound triggers");
-				PrintToChat(client,"\x04[Say Sounds]\x01%t", "Soundlist");
+				//PrintToChat(client,"{green}[Say Sounds]{default} Check your console for a list of sound triggers");
+				CPrintToChat(client,"{green}[Say Sounds] {default}%t", "Soundlist");
 			}
 			return Plugin_Handled;
 
@@ -1601,7 +1603,7 @@ Send_Sound(client, const String:filelocation[], const String:name[], bool:joinso
 		if (samplerate > 44100 && FileExists(filelocation))
 		{
 			LogError("Invalid sample rate (%d Hz) for file \"%s\", sample rate should not be above 44100 Hz", samplerate, filelocation);
-			PrintToChat(client, "\x04[Say Sounds] \x01Invalid sample rate (\x04%d Hz\x01) for file \x04%s\x01, sample rate should not be above \x0444100 Hz", samplerate, filelocation);
+			CPrintToChat(client, "{green}[Say Sounds] {default}Invalid sample rate ({green}%d Hz{default}) for file {green}%s{default}, sample rate should not be above {green}44100 Hz", samplerate, filelocation);
 			return;
 		}
 	}
@@ -1698,7 +1700,7 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		if(actiononly == 1)
 		{
 			//PrintToChat(client,"[Action Sounds] Sorry, this is an action sound!");
-			PrintToChat(client,"\x04[Action Sounds] \x01%t", "ActionSounds");
+			CPrintToChat(client,"{green}[Action Sounds] {default}%t", "ActionSounds");
 			return Plugin_Handled;
 		}
 	}
@@ -1718,14 +1720,14 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		isadmin = (aid != INVALID_ADMIN_ID) && GetAdminFlag(aid, Admin_Generic, Access_Effective);
 		if(adminonly && !isadmin)
 		{
-			//PrintToChat(client,"\x04[Say Sounds]\x01 Sorry, you are not authorized to play this sound!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "AdminSounds");
+			//PrintToChat(client,"{green}[Say Sounds]{default} Sorry, you are not authorized to play this sound!");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "AdminSounds");
 			return Plugin_Handled;
 		}
 		// Has the client access to this sound
 		if (accflags[0] != '\0' && !HasClientFlags(accflags, client))
 		{
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "NoAccess");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "NoAccess");
 			return Plugin_Handled;
 		}
 	}
@@ -1742,8 +1744,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 			{
 				if(IsValidClient(client))
 				{
-					//PrintToChat(client,"\x04[Say Sounds]\x01 Please don't spam the sounds!");
-					PrintToChat(client,"\x04[Say Sounds] \x01%t", "SpamSounds");
+					//PrintToChat(client,"{green}[Say Sounds]{default} Please don't spam the sounds!");
+					CPrintToChat(client,"{green}[Say Sounds] {default}%t", "SpamSounds");
 				}
 				return Plugin_Handled;
 			}
@@ -1764,8 +1766,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 		{
 			if(IsValidClient(client))
 			{
-				//PrintToChat(client,"\x04[Say Sounds]\x01 Please don't spam the admin sounds!");
-				PrintToChat(client,"\x04[Say Sounds] \x01%t", "SpamAdminSounds");
+				//PrintToChat(client,"{green}[Say Sounds]{default} Please don't spam the admin sounds!");
+				CPrintToChat(client,"{green}[Say Sounds] {default}%t", "SpamAdminSounds");
 			}
 			return Plugin_Handled;
 		}
@@ -1778,8 +1780,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 
 	if(GetConVarBool(cvarexcludelastsound) && IsValidClient(client) && joinsound != 1 && StrEqual(LastPlayedSound, name, false))
 	{
-		//PrintToChat(client, "\x04[Say Sounds]\x01 Sorry, this sound was recently played.");
-		PrintToChat(client, "\x04[Say Sounds] \x01%t", "RecentlyPlayed");
+		//PrintToChat(client, "{green}[Say Sounds]{default} Sorry, this sound was recently played.");
+		CPrintToChat(client, "{green}[Say Sounds] {default}%t", "RecentlyPlayed");
 		return Plugin_Handled;
 	}
 
@@ -1854,8 +1856,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 					{
 						if (txtmsg[0] != '\0')
 						{
-							//PrintToChatAll("\x04%N\x01: %s", client , txtmsg);
-							Format(chatBuffer, sizeof(chatBuffer), "\x04%N\x01: %s", client , txtmsg);
+							//PrintToChatAll("{green}%N{default}: %s", client , txtmsg);
+							Format(chatBuffer, sizeof(chatBuffer), "{green}%N{default}: %s", client , txtmsg);
 							dispatchChatMessage(client, chatBuffer, "");
 						}
 						else
@@ -1868,8 +1870,8 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 					{
 						if (txtmsg[0] != '\0')
 						{
-							//PrintToChatAll("\x04%N\x01: %s", client , txtmsg);
-							Format(chatBuffer, sizeof(chatBuffer), "\x04%N\x01: %s", client , txtmsg);
+							//PrintToChatAll("{green}%N{default}: %s", client , txtmsg);
+							Format(chatBuffer, sizeof(chatBuffer), "{green}%N{default}: %s", client , txtmsg);
 							dispatchChatMessage(client, chatBuffer, "");
 						}
 						else
@@ -1901,13 +1903,13 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 	{
 		if (SndCount[client] > soundLimit)
 		{
-			//PrintToChat(client,"\x04[Say Sounds]\x01 Sorry, you have reached your sound quota!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "QuotaReched");
+			//PrintToChat(client,"{green}[Say Sounds]{default} Sorry, you have reached your sound quota!");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "QuotaReched");
 		}
 		else if (SndCount[client] == soundLimit && joinsound != 1)
 		{
-			//PrintToChat(client,"\x04[Say Sounds]\x01 You have no sounds left to use!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "NoSoundsLeft");
+			//PrintToChat(client,"{green}[Say Sounds]{default} You have no sounds left to use!");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "NoSoundsLeft");
 			SndCount[client]++; // Increment so we get the sorry message next time.
 		}
 		else
@@ -1920,13 +1922,13 @@ public Action:Play_Sound_Timer(Handle:timer,Handle:pack)
 					new numberleft = (soundLimit -  SndCount[client]);
 					if (numberleft == 1)
 					{
-						//PrintToChat(client,"\x04[Say Sounds]\x01 You only have \x04%d \x01sound left to use!",numberleft);
-						PrintToChat(client,"\x04[Say Sounds] \x01%t", "SoundLeft",numberleft);
+						//PrintToChat(client,"{green}[Say Sounds]{default} You only have {green}%d {default}sound left to use!",numberleft);
+						CPrintToChat(client,"{green}[Say Sounds] {default}%t", "SoundLeft",numberleft);
 					}
 					else
 					{
-						//PrintToChat(client,"\x04[Say Sounds]\x01 You only have \x04%d \x01sounds left to use!",numberleft);
-						PrintToChat(client,"\x04[Say Sounds] \x01%t", "SoundLeftPlural",numberleft);
+						//PrintToChat(client,"{green}[Say Sounds]{default} You only have {green}%d {default}sounds left to use!",numberleft);
+						CPrintToChat(client,"{green}[Say Sounds] {default}%t", "SoundLeftPlural",numberleft);
 					}
 				}
 			}
@@ -1947,11 +1949,11 @@ dispatchChatMessage(client, const String:message[], const String:name[], bool:tr
 		if(IsValidClient(i) && checkClientCookies(i, CHK_CHATMSG))
 		{
 			if(translate && StrEqual(name, ""))
-				PrintToChat(i, "%t", message);
+				CPrintToChat(i, "%t", message);
 			else if(translate && !StrEqual(name, ""))
-				PrintToChat(i, "%t", message, client, name);
+				CPrintToChat(i, "%t", message, client, name);
 			else
-				PrintToChat(i, message);
+				CPrintToChat(i, message);
 		}
 	}
 }
@@ -1972,8 +1974,8 @@ public Load_Karaoke(client, const String:filelocation[], const String:name[], co
 		isadmin = (aid != INVALID_ADMIN_ID) && GetAdminFlag(aid, Admin_Generic, Access_Effective);
 		if(adminonly && !isadmin)
 		{
-			//PrintToChat(client,"\x04[Say Sounds]\x01 Sorry, you are not authorized to play this sound!");
-			PrintToChat(client,"\x04[Say Sounds] \x01%t", "AdminSounds");
+			//PrintToChat(client,"{green}[Say Sounds]{default} Sorry, you are not authorized to play this sound!");
+			CPrintToChat(client,"{green}[Say Sounds] {default}%t", "AdminSounds");
 			return;
 		}
 	}
@@ -2272,7 +2274,7 @@ public Action:Command_Sound_Reset(client, args)
 	if (args < 1)
 	{
 		//ReplyToCommand(client, "[Say Sounds] Usage: sm_sound_reset <user | all> : Resets sound quota for user, or everyone if all");
-		ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "QuotaResetUsage");
+		ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "QuotaResetUsage");
 		return Plugin_Handled;
 	}
 
@@ -2287,7 +2289,7 @@ public Action:Command_Sound_Reset(client, args)
 		if(client !=0)
 		{
 			//ReplyToCommand(client, "[Say Sounds] Quota has been reset for all players");
-			ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "QuotaResetAll");
+			ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "QuotaResetAll");
 		}
 	}
 	else
@@ -2306,7 +2308,7 @@ public Action:Command_Sound_Reset(client, args)
 					new String:clientname[64];
 					GetClientName(player,clientname,MAXPLAYERS);
 					//ReplyToCommand(client, "[Say Sounds] Quota has been reset for %s", clientname);
-					ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "QuotaResetUser", clientname);
+					ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "QuotaResetUser", clientname);
 				}
 			}
 		}
@@ -2322,7 +2324,7 @@ public Action:Command_Sound_Ban(client, args)
 	if (args < 1)
 	{
 		//ReplyToCommand(client, "[Say Sounds] Usage: sm_sound_ban <user> : Bans a player from using sounds");
-		ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "SoundBanUsage");
+		ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "SoundBanUsage");
 		return Plugin_Handled;	
 	}
 
@@ -2344,14 +2346,14 @@ public Action:Command_Sound_Ban(client, args)
 				if (checkClientCookies(player, CHK_BANNED))
 				{
 					//ReplyToCommand(client, "[Say Sounds] %s is already banned!", clientname);
-					ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "AlreadyBanned", clientname);
+					ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "AlreadyBanned", clientname);
 				}
 				else
 				{
 					SetClientCookie(player, g_ssban_cookie, "on");
 					//restrict_playing_sounds[player]=1;
 					//ReplyToCommand(client,"[Say Sounds] %s has been banned!", clientname);
-					ReplyToCommand(client,"\x04[Say Sounds] \x01%t", "PlayerBanned", clientname);
+					ReplyToCommand(client,"{green}[Say Sounds] {default}%t", "PlayerBanned", clientname);
 				}
 			}
 		}
@@ -2368,7 +2370,7 @@ public Action:Command_Sound_Unban(client, args)
 	if (args < 1)
 	{
 		//ReplyToCommand(client, "[Say Sounds] Usage: sm_sound_unban <user> <1|0> : Unbans a player from using sounds");
-		ReplyToCommand(client, "\x04[Say Sounds] \x01%t", "SoundUnbanUsage");
+		ReplyToCommand(client, "{green}[Say Sounds] {default}%t", "SoundUnbanUsage");
 		return Plugin_Handled;	
 	}
 
@@ -2390,14 +2392,14 @@ public Action:Command_Sound_Unban(client, args)
 				if(!checkClientCookies(player, CHK_BANNED))
 				{
 					//ReplyToCommand(client,"[Say Sounds] %s is not banned!", clientname);
-					ReplyToCommand(client,"\x04[Say Sounds] \x01%t", "NotBanned", clientname);
+					ReplyToCommand(client,"{green}[Say Sounds] {default}%t", "NotBanned", clientname);
 				}
 				else
 				{
 					SetClientCookie(player, g_ssban_cookie, "off");
 					//restrict_playing_sounds[player]=0;
 					//ReplyToCommand(client,"[Say Sounds] %s has been unbanned!", clientname);
-					ReplyToCommand(client,"\x04[Say Sounds] \x01%t", "PlayerUnbanned", clientname);
+					ReplyToCommand(client,"{green}[Say Sounds] {default}%t", "PlayerUnbanned", clientname);
 				}
 			}
 		}
